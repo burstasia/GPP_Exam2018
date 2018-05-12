@@ -40,7 +40,7 @@ void Plugin::InitGameDebugParams(GameDebugParams& params)
 							//params.LevelFile = "LevelTwo.gppl";
 	params.AutoGrabClosestItem = true; //A call to Item_Grab(...) returns the closest item that can be grabbed. (EntityInfo argument is ignored)
 	params.OverrideDifficulty = false; //Override Difficulty?
-	params.Difficulty = 1.f; //Difficulty Override: 0 > 1 (Overshoot is possible, >1)
+	params.Difficulty = 10.f; //Difficulty Override: 0 > 1 (Overshoot is possible, >1)
 }
 
 //Only Active in DEBUG Mode

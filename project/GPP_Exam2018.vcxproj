@@ -23,7 +23,7 @@
     <ProjectGuid>{E1DB7373-9BCD-4D5E-A8B2-3F2DD82E3D53}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GPP_Assignment2018</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
