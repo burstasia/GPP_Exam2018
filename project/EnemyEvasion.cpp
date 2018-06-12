@@ -97,5 +97,7 @@ Elite::Vector2 EnemyEvasion::CalculateLinearVelocity(const Elite::Vector2 & firs
 
 	linearVelocity = (currPos - firstPos) / dt;
 
+	linearVelocity.Normalize();
+
 	return linearVelocity;
 }

@@ -42,6 +42,18 @@ private:
 	bool m_DropItem = false; 
 	float m_AngSpeed = 0.f; 
 
+	//HELPER FUNCTIONS
+	//this function fills my m_VecEnemies and updates my EnemyEvasion class
+	void FillEnemyVec(float dt, const vector<EntityInfo>& entitiesFOV);
+
+	//find next target pos
+	Elite::Vector2 Evade();
+
+	//movement behaviours
+	Elite::Vector2 Flee(const Elite::Vector2& nextTargetPos, const AgentInfo& agentInfo);
+	Elite::Vector2 SimpleSeeking(const Elite::Vector2& nextTargetPos, const AgentInfo& agentInfo);
+
+	Elite::Vector2 CalculateFinalVelocityWithBlend(const Elite::Vector2& linVel01, const Elite::Vector2& linVel02, float blend01, float blend02);
 
 };
 

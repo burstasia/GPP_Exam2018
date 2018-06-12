@@ -126,24 +126,27 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 
 	auto vEntitiesInFOV = GetEntitiesInFOV();
 
+	FillEnemyVec(dt, vEntitiesInFOV);
 	
-	vector<EnemyInfo> vEnemiesInFOV;
+	Elite::Vector2 evadeVelocity{};
 
-	for (auto entity : vEntitiesInFOV)
+	if (m_VecEnemies.size() > 0 || agentInfo.Bitten)
 	{
-		if (entity.Type == eEntityType::ENEMY)
-		{
-			EnemyInfo eInfo = {};
-			m_pInterface->Enemy_GetInfo(entity, eInfo);
-
-			vEnemiesInFOV.push_back(eInfo);
-		}
+		evadeVelocity = Evade();
+		m_CanRun = true;
 	}
 
-	m_pEnemyEvasion->Update(dt, vEnemiesInFOV);
+	Elite::Vector2 normalSeekVelocity = SimpleSeeking(nextTargetPos, agentInfo);
 
-	m_VecEnemies = m_pEnemyEvasion->GetEnemyVec();
 
+	steering.LinearVelocity = CalculateFinalVelocityWithBlend(normalSeekVelocity, evadeVelocity, 0.8f, 0.2f);
+
+	m_AngSpeed += 1.0f;
+	steering.AngularVelocity = m_AngSpeed;
+
+	steering.AutoOrientate = false;
+
+	steering.RunMode = false;
 
 	return steering;
 }
@@ -191,4 +194,72 @@ vector<EntityInfo> Plugin::GetEntitiesInFOV() const
 	}
 
 	return vEntitiesInFOV;
+}
+
+void Plugin::FillEnemyVec(float dt, const vector<EntityInfo>& entitiesFOV)
+{
+	vector<EnemyInfo> vEnemiesInFOV;
+
+	for (auto entity : entitiesFOV)
+	{
+		if (entity.Type == eEntityType::ENEMY)
+		{
+			EnemyInfo eInfo = {};
+			m_pInterface->Enemy_GetInfo(entity, eInfo);
+
+			vEnemiesInFOV.push_back(eInfo);
+		}
+	}
+
+	m_pEnemyEvasion->Update(dt, vEnemiesInFOV);
+
+	m_VecEnemies = m_pEnemyEvasion->GetEnemyVec();
+}
+
+Elite::Vector2 Plugin::Evade()
+{
+	Enemy averageEnemy{};
+	averageEnemy = m_pEnemyEvasion->GetAverageEnemy();
+
+	auto agentInfo = m_pInterface->Agent_GetInfo();
+	auto distanceToTarget = (agentInfo.Position - averageEnemy.m_Info.Location).Magnitude();
+	auto offsetFromTarget = distanceToTarget / agentInfo.MaxLinearSpeed;
+	auto targetDirection = -0.5f * averageEnemy.m_LinearVelocity;
+
+	auto newTarget = averageEnemy.m_Info.Location + (targetDirection * offsetFromTarget);
+
+	return Flee(newTarget, agentInfo);
+}
+
+Elite::Vector2 Plugin::Flee(const Elite::Vector2 & nextTargetPos, const AgentInfo & agentInfo)
+{
+	Elite::Vector2 linearVelocity{};
+
+	linearVelocity = nextTargetPos - agentInfo.Position;
+	linearVelocity.Normalize();
+	linearVelocity *= agentInfo.MaxLinearSpeed;
+	linearVelocity = linearVelocity * -1.0f;
+
+	return linearVelocity;
+}
+
+Elite::Vector2 Plugin::SimpleSeeking(const Elite::Vector2 & nextTargetPos, const AgentInfo & agentInfo)
+{
+	Elite::Vector2 linearVelocity{};
+
+	//Simple Seek Behaviour (towards Target)
+	linearVelocity = nextTargetPos - agentInfo.Position; //Desired Velocity
+	linearVelocity.Normalize(); //Normalize Desired Velocity
+	linearVelocity *= agentInfo.MaxLinearSpeed; //Rescale to Max Speed
+
+	return linearVelocity;
+}
+
+Elite::Vector2 Plugin::CalculateFinalVelocityWithBlend(const Elite::Vector2 & linVel01, const Elite::Vector2 & linVel02, float blend01, float blend02)
+{
+	Elite::Vector2 finalLinearVelocity{};
+
+	finalLinearVelocity = (blend01 * linVel01) + (blend02 * linVel02);
+
+	return finalLinearVelocity;
 }
