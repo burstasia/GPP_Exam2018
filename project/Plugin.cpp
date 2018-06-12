@@ -134,14 +134,35 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 	{
 		evadeVelocity = Evade();
 		m_CanRun = true;
+
+		Elite::Vector2 normalSeekVelocity = SimpleSeeking(nextTargetPos, agentInfo);
+
+
+		steering.LinearVelocity = CalculateFinalVelocityWithBlend(normalSeekVelocity, evadeVelocity, 0.8f, 0.2f);
+
+
+		steering.AutoOrientate = true;
+
+		steering.RunMode = false;
+
+		return steering;
 	}
 
+	if (agentInfo.IsInHouse)
+	{
+		//spin in circle
+		//look at items around me
+		//determine what I need
+		FillItemVec(vEntitiesInFOV);
+
+	}
 	Elite::Vector2 normalSeekVelocity = SimpleSeeking(nextTargetPos, agentInfo);
+	
+	steering.LinearVelocity = normalSeekVelocity;
 
+	if (m_AngSpeed <= 0.2f) m_AngSpeed += 0.01f;
+	else m_AngSpeed -= 0.01f;
 
-	steering.LinearVelocity = CalculateFinalVelocityWithBlend(normalSeekVelocity, evadeVelocity, 0.8f, 0.2f);
-
-	m_AngSpeed += 1.0f;
 	steering.AngularVelocity = m_AngSpeed;
 
 	steering.AutoOrientate = false;
@@ -214,6 +235,26 @@ void Plugin::FillEnemyVec(float dt, const vector<EntityInfo>& entitiesFOV)
 	m_pEnemyEvasion->Update(dt, vEnemiesInFOV);
 
 	m_VecEnemies = m_pEnemyEvasion->GetEnemyVec();
+}
+
+void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV)
+{
+	vector<ItemInfo> vItemsInFOV;
+	ItemInfo iInfo = {};
+	for (auto entity : entitiesFOV)
+	{
+		if (entity.Type == eEntityType::ITEM)
+		{
+			//vItemsInFOV.push_back(entity);
+			
+
+			m_pInterface->Item_Grab(entity, iInfo);
+			vItemsInFOV.push_back(iInfo);
+		}
+	}
+
+
+	//m_VecEnemies = m_pEnemyEvasion->GetEnemyVec();
 }
 
 Elite::Vector2 Plugin::Evade()

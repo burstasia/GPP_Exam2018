@@ -45,6 +45,8 @@ private:
 	//HELPER FUNCTIONS
 	//this function fills my m_VecEnemies and updates my EnemyEvasion class
 	void FillEnemyVec(float dt, const vector<EntityInfo>& entitiesFOV);
+	//fill with items around me
+	void FillItemVec(const vector<EntityInfo>& entitiesFOV);
 
 	//find next target pos
 	Elite::Vector2 Evade();
