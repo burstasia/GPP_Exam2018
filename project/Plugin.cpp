@@ -11,10 +11,10 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 
 	//Bit information about the plugin
 	//Please fill this in!!
-	info.BotName = "MinionExam";
-	info.Student_FirstName = "Foo";
-	info.Student_LastName = "Bar";
-	info.Student_Class = "2DAEx";
+	info.BotName = "EatSeekSurviveRepeat";
+	info.Student_FirstName = "Nicole";
+	info.Student_LastName = "Munro";
+	info.Student_Class = "2DAE01";
 }
 
 //Called only once
@@ -128,7 +128,7 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 
 	//Entity Info Demo
 	//****************
-	/*for (auto entity : vEntitiesInFOV)
+	for (auto entity : vEntitiesInFOV)
 	{
 	if (entity.Type == eEntityType::ENEMY)
 	{
@@ -163,7 +163,7 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 	}
 	}
 	}
-	*/
+	
 
 	//INVENTORY USAGE DEMO
 	//********************
