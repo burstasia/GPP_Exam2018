@@ -15,9 +15,9 @@ public:
 	EnemyEvasion(float totalEnemyTime);
 	~EnemyEvasion();
 
+	void Update(float dt, const vector<EnemyInfo>& enemiesInFOV);
 
-	void RemoveEnemiesAndIncrementTime(float dt);
-	void AddEnemies(const vector<EnemyInfo>& enemiesInFOV);
+	
 	Enemy GetAverageEnemy();
 	vector<Enemy>& GetEnemyVec();
 
@@ -28,5 +28,8 @@ private:
 
 	//HELPER FUNCTIONS
 	Elite::Vector2 CalculateLinearVelocity(const Elite::Vector2& firstPos, const Elite::Vector2& currPos, float dt);
+	void RemoveEnemiesAndIncrementTime(float dt);
+	void AddEnemies(const vector<EnemyInfo>& enemiesInFOV);
+	void UpdateLinearVelocityEnemies(float dt);
 };
 

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Plugin.h"
 #include "IExamInterface.h"
+#include "EnemyEvasion.h"
 
 //Called only once, during initialization
 void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
@@ -15,6 +16,9 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	info.Student_FirstName = "Nicole";
 	info.Student_LastName = "Munro";
 	info.Student_Class = "2DAE01";
+
+	//Create EnemyEvasion class to use to store enemies
+	m_pEnemyEvasion = new EnemyEvasion(2.0f);
 }
 
 //Called only once
@@ -120,109 +124,26 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 	//Use the navmesh to calculate the next navmesh point
 	auto nextTargetPos = m_pInterface->NavMesh_GetClosestPathPoint(checkpointLocation);
 
-	//OR, Use the mouse target
-	//auto nextTargetPos = m_Target; //Uncomment this to use mouse position as guidance
+	auto vEntitiesInFOV = GetEntitiesInFOV();
 
-	auto vHousesInFOV = GetHousesInFOV();//uses m_pInterface->Fov_GetHouseByIndex(...)
-	auto vEntitiesInFOV = GetEntitiesInFOV(); //uses m_pInterface->Fov_GetEntityByIndex(...)
+	
+	vector<EnemyInfo> vEnemiesInFOV;
 
-	//Entity Info Demo
-	//****************
 	for (auto entity : vEntitiesInFOV)
 	{
-	if (entity.Type == eEntityType::ENEMY)
-	{
-	//Gather Enemy Info
-	EnemyInfo eInfo = {};
-	m_pInterface->Enemy_GetInfo(entity, eInfo);
-
-	//Set Enemy Tag
-	m_pInterface->Enemy_SetTag(eInfo, eInfo.Tag + 1);
-	}
-	else if (entity.Type == eEntityType::ITEM)
-	{
-	//Gather Item Info
-	ItemInfo iInfo = {};
-	m_pInterface->Item_Grab(entity, iInfo);
-
-	//Retrieve Additional Data (Metadata)
-	if (iInfo.Type == eItemType::PISTOL) //Available Metadata: ammo/dps/range
-	{
-	//CheapVariant can be casted to UINT/INT/FLOAT/BOOL
-	int ammo = m_pInterface->Item_GetMetadata(iInfo, "ammo"); //INT
-	float dps = m_pInterface->Item_GetMetadata(iInfo, "dps"); //FLOAT
-	float range = m_pInterface->Item_GetMetadata(iInfo, "range"); //FLOAT
-	}
-	else if (iInfo.Type == eItemType::FOOD)
-	{
-	int energy = m_pInterface->Item_GetMetadata(iInfo, "energy"); //INT
-	}
-	else if (iInfo.Type == eItemType::MEDKIT)
-	{
-	int health = m_pInterface->Item_GetMetadata(iInfo, "health"); //INT
-	}
-	}
-	}
-	
-
-	//INVENTORY USAGE DEMO
-	//********************
-
-	if (m_GrabItem)
-	{
-		ItemInfo item;
-		//Item_Grab > When DebugParams.AutoGrabClosestItem is TRUE, the Item_Grab function returns the closest item in range
-		//Keep in mind that DebugParams are only used for debugging purposes, by default this flag is FALSE
-		//Otherwise, use GetEntitiesInFOV() to retrieve a vector of all entities in the FOV (EntityInfo)
-		//Item_Grab gives you the ItemInfo back, based on the passed EntityHash (retrieved by GetEntitiesInFOV)
-		if (m_pInterface->Item_Grab({}, item))
+		if (entity.Type == eEntityType::ENEMY)
 		{
-			//Once grabbed, you can add it to a specific inventory slot
-			//Slot must be empty
-			m_pInterface->Inventory_AddItem(0, item);
+			EnemyInfo eInfo = {};
+			m_pInterface->Enemy_GetInfo(entity, eInfo);
+
+			vEnemiesInFOV.push_back(eInfo);
 		}
 	}
 
-	if (m_UseItem)
-	{
-		//Use an item (make sure there is an item at the given inventory slot)
-		m_pInterface->Inventory_UseItem(0);
-	}
+	m_pEnemyEvasion->Update(dt, vEnemiesInFOV);
 
-	if (m_DropItem)
-	{
-		//Drop an item > Get dropped at players position (Rehashed)
-		m_pInterface->Inventory_DropItem(0);
-	}
+	m_VecEnemies = m_pEnemyEvasion->GetEnemyVec();
 
-	if (m_RemoveItem)
-	{
-		//Remove an item from a inventory slot
-		m_pInterface->Inventory_RemoveItem(0);
-	}
-
-	//Simple Seek Behaviour (towards Target)
-	steering.LinearVelocity = nextTargetPos - agentInfo.Position; //Desired Velocity
-	steering.LinearVelocity.Normalize(); //Normalize Desired Velocity
-	steering.LinearVelocity *= agentInfo.MaxLinearSpeed; //Rescale to Max Speed
-
-	if (Distance(nextTargetPos, agentInfo.Position) < 2.f)
-	{
-		steering.LinearVelocity = Elite::ZeroVector2;
-	}
-
-	//steering.AngularVelocity = m_AngSpeed; //Rotate your character to inspect the world while walking
-	steering.AutoOrientate = true; //Setting AutoOrientate to TRue overrides the AngularVelocity
-
-	steering.RunMode = m_CanRun; //If RunMode is True > MaxLinSpd is increased for a limited time (till your stamina runs out)
-
-								 //SteeringPlugin_Output is works the exact same way a SteeringBehaviour output
-
-								 //@End (Demo Purposes)
-	m_GrabItem = false; //Reset State
-	m_UseItem = false;
-	m_RemoveItem = false;
-	m_DropItem = false;
 
 	return steering;
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "IExamPlugin.h"
 #include "Exam_HelperStructs.h"
+#include "EnemyEvasion.h"
 
 class IBaseInterface;
 class IExamInterface;
@@ -30,13 +31,18 @@ private:
 	vector<HouseInfo> GetHousesInFOV() const;
 	vector<EntityInfo> GetEntitiesInFOV() const;
 
+	vector<Enemy> m_VecEnemies;
+	EnemyEvasion* m_pEnemyEvasion;
+
 	Elite::Vector2 m_Target = {};
-	bool m_CanRun = false; //Demo purpose
-	bool m_GrabItem = false; //Demo purpose
-	bool m_UseItem = false; //Demo purpose
-	bool m_RemoveItem = false; //Demo purpose
-	bool m_DropItem = false; //Demo purpose
-	float m_AngSpeed = 0.f; //Demo purpose
+	bool m_CanRun = false; 
+	bool m_GrabItem = false; 
+	bool m_UseItem = false; 
+	bool m_RemoveItem = false; 
+	bool m_DropItem = false; 
+	float m_AngSpeed = 0.f; 
+
+
 };
 
 //ENTRY

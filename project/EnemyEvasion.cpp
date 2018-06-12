@@ -12,6 +12,13 @@ EnemyEvasion::~EnemyEvasion()
 {
 }
 
+void EnemyEvasion::Update(float dt, const vector<EnemyInfo>& enemiesInFOV)
+{
+	AddEnemies(enemiesInFOV);
+	RemoveEnemiesAndIncrementTime(dt);
+	UpdateLinearVelocityEnemies(dt);
+}
+
 void EnemyEvasion::RemoveEnemiesAndIncrementTime(float dt)
 {
 	if (m_StoredEnemiesVec.size() > 0)
@@ -37,6 +44,7 @@ void EnemyEvasion::AddEnemies(const vector<EnemyInfo>& enemiesInFOV)
 				//if the enemy is with a certain radius of itself then it is the same enemy
 				if ((m_StoredEnemiesVec.at(j).m_Info.Location - enemiesInFOV.at(i).Location).Magnitude() < enemiesInFOV.at(i).Size * 3.0f)
 				{
+					m_StoredEnemiesVec.at(j).m_Info.Location = enemiesInFOV.at(i).Location;
 					found = true;
 				}
 			}
@@ -44,6 +52,18 @@ void EnemyEvasion::AddEnemies(const vector<EnemyInfo>& enemiesInFOV)
 		}
 	}
 
+}
+
+void EnemyEvasion::UpdateLinearVelocityEnemies(float dt)
+{
+	if (m_StoredEnemiesVec.size() > 0)
+	{
+		for (auto &enemy : m_StoredEnemiesVec)
+		{
+			enemy.m_LinearVelocity = CalculateLinearVelocity(enemy.m_FirstPos, enemy.m_Info.Location, dt);
+		}
+	}
+	
 }
 
 Enemy EnemyEvasion::GetAverageEnemy()
