@@ -36,4 +36,5 @@ using namespace std;
 #include <SDL2/SDL_syswm.h>
 
 #include "EliteMath/EMath.h"
+
 #pragma endregion

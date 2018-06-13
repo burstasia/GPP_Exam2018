@@ -2,6 +2,9 @@
 #include "Plugin.h"
 #include "IExamInterface.h"
 #include "EnemyEvasion.h"
+#include "BehaviorTree.h"
+#include "Behaviors.h"
+#include "Blackboard.h"
 
 //Called only once, during initialization
 void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
@@ -19,6 +22,13 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 
 	//Create EnemyEvasion class to use to store enemies
 	m_pEnemyEvasion = new EnemyEvasion(2.0f);
+
+	auto pBlackboard = new Blackboard();
+	pBlackboard->AddData("AgentInfo", m_pInterface->Agent_GetInfo());
+	pBlackboard->AddData("Interface", m_pInterface);
+	pBlackboard->AddData("EnemyEvasion", m_pEnemyEvasion);
+
+
 }
 
 //Called only once
@@ -138,7 +148,7 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 		Elite::Vector2 normalSeekVelocity = SimpleSeeking(nextTargetPos, agentInfo);
 
 
-		steering.LinearVelocity = CalculateFinalVelocityWithBlend(normalSeekVelocity, evadeVelocity, 0.8f, 0.2f);
+		steering.LinearVelocity = CalculateFinalVelocityWithBlend(normalSeekVelocity, evadeVelocity, 0.6f, 0.4f);
 
 
 		steering.AutoOrientate = true;
@@ -154,6 +164,8 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 		//look at items around me
 		//determine what I need
 		FillItemVec(vEntitiesInFOV);
+
+
 
 	}
 	Elite::Vector2 normalSeekVelocity = SimpleSeeking(nextTargetPos, agentInfo);
