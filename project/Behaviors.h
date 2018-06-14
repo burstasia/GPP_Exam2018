@@ -291,9 +291,11 @@ BehaviorState Aim(Blackboard* pBlackboard)
 	IExamInterface* pInterface;
 	Elite::Vector2 enemyPos;
 	Elite::Vector2 vecBetweenAgentAndEnemy;
+	float angSpeed;
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
-		pBlackboard->GetData("EnemyPos", enemyPos);
+		pBlackboard->GetData("EnemyPos", enemyPos)&&
+		pBlackboard->GetData("AngSpeed", angSpeed);
 
 	if (!dataAvailiable)
 	{
@@ -303,7 +305,28 @@ BehaviorState Aim(Blackboard* pBlackboard)
 	vecBetweenAgentAndEnemy =(enemyPos - pInterface->Agent_GetInfo().Position);
 	Elite::Normalize(vecBetweenAgentAndEnemy);
 
+	Elite::Vector2 forward{};
+	AgentInfo agentInfo = pInterface->Agent_GetInfo();
 
+	forward.x = agentInfo.LinearVelocity.x * cos(agentInfo.Orientation) - agentInfo.LinearVelocity.y * sin(agentInfo.Orientation);
+	forward.y = agentInfo.LinearVelocity.x * sin(agentInfo.Orientation) + agentInfo.LinearVelocity.y * cos(agentInfo.Orientation);
+
+	float angle = atan2(Elite::Cross(forward, vecBetweenAgentAndEnemy), Elite::Dot(forward, vecBetweenAgentAndEnemy));
+
+	if (angle < 0.0f)
+	{
+		angSpeed = -1.0f;
+	}
+	else
+	{
+		angSpeed = 1.0f;
+	}
+
+	if (angle > 2.0f)
+	{
+		return BehaviorState::Running;
+	}
+	else return BehaviorState::Success;
 
 
 }
