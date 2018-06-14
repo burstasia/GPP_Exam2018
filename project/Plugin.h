@@ -5,6 +5,7 @@
 
 class IBaseInterface;
 class IExamInterface;
+class ItemTracker;
 
 class Plugin :public IExamPlugin
 {
@@ -33,6 +34,7 @@ private:
 
 	vector<Enemy> m_VecEnemies;
 	EnemyEvasion* m_pEnemyEvasion;
+	ItemTracker* m_pItemTracker;
 
 	Elite::Vector2 m_Target = {};
 	bool m_CanRun = false; 

@@ -31,7 +31,7 @@ void ItemTracker::AddItem(eItemType type, Elite::Vector2 pos)
 	}
 }
 
-Item ItemTracker::GetClosestItemOfType(eItemType type, const Elite::Vector2 & currPos)
+float ItemTracker::GetClosestDistance(eItemType type, const Elite::Vector2 & currPos)
 {
 	switch (type)
 	{
@@ -65,7 +65,7 @@ void ItemTracker::AddItemToVec(vector<Item>& vec, eItemType type, const Elite::V
 	if (!found) vec.push_back(Item{ type, pos });
 }
 
-Item ItemTracker::GetClosest(const vector<Item>& vec, const Elite::Vector2 & pos)
+float ItemTracker::GetClosest(const vector<Item>& vec, const Elite::Vector2 & pos)
 {
 	bool found = false;
 	Item item{};
@@ -75,11 +75,13 @@ Item ItemTracker::GetClosest(const vector<Item>& vec, const Elite::Vector2 & pos
 	{
 		if (Elite::Distance(itemVec.pos, pos) < max)
 		{
+			max = Elite::Distance(itemVec.pos, pos);
 			item = itemVec;
 		}
 	}
 
-	return item;
+	m_ClosestPos = item.pos;
+	return max;
 }
 
 

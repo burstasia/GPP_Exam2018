@@ -4,7 +4,7 @@
 #include "BehaviorTree.h"
 #include "IExamInterface.h"
 #include "EliteMath/EVector2.h"
-
+#include "ItemTracker.h"
 //*** GENERAL BEHAVIORS ***
 
 //conditionals
@@ -183,8 +183,30 @@ bool HaveAmmo(Blackboard *pBlackboard)
 			return true;
 		}
 	}
+}
 
-	
+bool CloseItem(Blackboard * pBlackboard)
+{
+	IExamInterface* pInterface;
+	ItemInfo iInfo{};
+	ItemTracker* pItemTracker{};
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("ItemTracker", pItemTracker) && 
+		pBlackboard->GetData("ItemToTrack", iInfo);
+
+	if (!dataAvailiable)
+	{
+		return false;
+	}
+
+	//TODO: change max distance to variable the plugin sets 
+
+	if (pItemTracker->GetClosestDistance(iInfo.Type, pInterface->Agent_GetInfo().Position) > 10.0f)
+	{
+		return false;
+	}
+	else return true;
 }
 //actions
 BehaviorState EatFood(Blackboard *pBlackboard)

@@ -5,6 +5,7 @@
 #include "BehaviorTree.h"
 #include "Behaviors.h"
 #include "Blackboard.h"
+#include "ItemTracker.h"
 
 //Called only once, during initialization
 void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
@@ -22,6 +23,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 
 	//Create EnemyEvasion class to use to store enemies
 	m_pEnemyEvasion = new EnemyEvasion(2.0f);
+	m_pItemTracker = new ItemTracker();
 
 	auto pBlackboard = new Blackboard();
 	pBlackboard->AddData("AgentInfo", m_pInterface->Agent_GetInfo());
@@ -258,10 +260,13 @@ void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV)
 		if (entity.Type == eEntityType::ITEM)
 		{
 			//vItemsInFOV.push_back(entity);
-			
+			if (Elite::Distance(m_pInterface->Agent_GetInfo().Position, entity.Location) < m_pInterface->Agent_GetInfo().GrabRange)
+			{
+				m_pInterface->Item_Grab(entity, iInfo);
+				vItemsInFOV.push_back(iInfo);
 
-			m_pInterface->Item_Grab(entity, iInfo);
-			vItemsInFOV.push_back(iInfo);
+				m_pItemTracker->AddItem(iInfo.Type, iInfo.Location);
+			}	
 		}
 	}
 

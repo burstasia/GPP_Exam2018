@@ -21,7 +21,8 @@ public:
 
 	vector<Item>& GetFoodVec() { return m_FoodVec; }
 
-	Item GetClosestItemOfType(eItemType type, const Elite::Vector2& currPos);
+	float GetClosestDistance(eItemType type, const Elite::Vector2& currPos);
+	Elite::Vector2 GetClosestPos() { return m_ClosestPos; }
 
 private:
 	vector<Item> m_MedkitVec;
@@ -29,8 +30,10 @@ private:
 	vector<Item> m_FoodVec;
 	vector<Item> m_MiscVec;
 
+	Elite::Vector2 m_ClosestPos;
+
 	void AddItemToVec(vector<Item>& vec, eItemType type, const Elite::Vector2& pos);
-	Item GetClosest(const vector<Item>& vec, const Elite::Vector2& pos);
+	float GetClosest(const vector<Item>& vec, const Elite::Vector2& pos);
 
 };
 
