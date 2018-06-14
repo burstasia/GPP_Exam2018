@@ -188,6 +188,7 @@
     <ClInclude Include="BehaviorTree.h" />
     <ClInclude Include="Blackboard.h" />
     <ClInclude Include="EnemyEvasion.h" />
+    <ClInclude Include="HouseTracker.h" />
     <ClInclude Include="ItemTracker.h" />
     <ClInclude Include="Plugin.h" />
     <ClInclude Include="stdafx.h" />
@@ -195,6 +196,7 @@
   <ItemGroup>
     <ClCompile Include="BehaviorTree.cpp" />
     <ClCompile Include="EnemyEvasion.cpp" />
+    <ClCompile Include="HouseTracker.cpp" />
     <ClCompile Include="ItemTracker.cpp" />
     <ClCompile Include="Plugin.cpp" />
     <ClCompile Include="stdafx.cpp">

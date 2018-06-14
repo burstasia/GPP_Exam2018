@@ -180,6 +180,7 @@ bool HaveAmmo(Blackboard *pBlackboard)
 		pInterface->Inventory_GetItem(i, iInfo);
 		if (iInfo.Type == eItemType::PISTOL)
 		{
+		
 			return true;
 		}
 	}
