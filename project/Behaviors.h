@@ -313,13 +313,15 @@ BehaviorState Aim(Blackboard* pBlackboard)
 
 	float angle = atan2(Elite::Cross(forward, vecBetweenAgentAndEnemy), Elite::Dot(forward, vecBetweenAgentAndEnemy));
 
+	//float angle = (atan2(velocity.x, velocity.z) * 180 / XM_PI) + 180.f;
+
 	if (angle < 0.0f)
 	{
-		*angSpeed = -1.0f;
+		*angSpeed = -0.2f;
 	}
 	else
 	{
-		*angSpeed = 1.0f;
+		*angSpeed = 0.2f;
 	}
 
 	if (angle > 2.0f)
