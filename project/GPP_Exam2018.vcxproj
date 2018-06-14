@@ -188,12 +188,14 @@
     <ClInclude Include="BehaviorTree.h" />
     <ClInclude Include="Blackboard.h" />
     <ClInclude Include="EnemyEvasion.h" />
+    <ClInclude Include="ItemTracker.h" />
     <ClInclude Include="Plugin.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BehaviorTree.cpp" />
     <ClCompile Include="EnemyEvasion.cpp" />
+    <ClCompile Include="ItemTracker.cpp" />
     <ClCompile Include="Plugin.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -162,33 +162,30 @@ bool InRangeItem(Blackboard* pBlackboard)
 	return Elite::Distance(pInterface->Agent_GetInfo().Position, itemPos) < pInterface->Agent_GetInfo().GrabRange;
 }
 
-//bool HaveAmmo(Blackboard *pBlackboard)
-//{
-//	//IExamInterface* pInterface;
-//	//ItemInfo iInfo{};
-//
-//	//auto dataAvailiable = pBlackboard->GetData("Interface", pInterface);
-//
-//	//if (!dataAvailiable)
-//	//{
-//	//	return false;
-//	//}
-//
-//	////Go through all the slots and check if any is gun
-//	//for (UINT i = 0; i < pInterface->Inventory_GetCapacity(); i++)
-//	//{
-//	//	pInterface->Inventory_GetItem(i, iInfo);
-//	//	if (iInfo.Type == eItemType::PISTOL)
-//	//	{
-//	//		return true;
-//	//	}
-//	//}
-//
-//	if (HasGun(pBlackboard))
-//	{
-//
-//	}
-//}
+bool HaveAmmo(Blackboard *pBlackboard)
+{
+	IExamInterface* pInterface;
+	ItemInfo iInfo{};
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface);
+
+	if (!dataAvailiable)
+	{
+		return false;
+	}
+
+	//Go through all the slots and check if any is gun
+	for (UINT i = 0; i < pInterface->Inventory_GetCapacity(); i++)
+	{
+		pInterface->Inventory_GetItem(i, iInfo);
+		if (iInfo.Type == eItemType::PISTOL)
+		{
+			return true;
+		}
+	}
+
+	
+}
 //actions
 BehaviorState EatFood(Blackboard *pBlackboard)
 {
