@@ -7,6 +7,7 @@ class IBaseInterface;
 class IExamInterface;
 class ItemTracker;
 class HouseTracker;
+class BehaviorTree;
 
 class Plugin :public IExamPlugin
 {
@@ -37,6 +38,7 @@ private:
 	EnemyEvasion* m_pEnemyEvasion;
 	ItemTracker* m_pItemTracker;
 	HouseTracker* m_pHouseTracker;
+	BehaviorTree* m_pBehaviorTree;
 
 	Elite::Vector2 m_Target = {};
 	bool m_CanRun = false; 

@@ -31,7 +31,24 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	pBlackboard->AddData("AgentInfo", m_pInterface->Agent_GetInfo());
 	pBlackboard->AddData("Interface", m_pInterface);
 	pBlackboard->AddData("EnemyEvasion", m_pEnemyEvasion);
+	pBlackboard->AddData("AngSpeed", &m_AngSpeed);
+	pBlackboard->AddData("EnemyPos", m_Target);
 
+	m_pBehaviorTree = new BehaviorTree
+	(pBlackboard,
+		new BehaviorSelector
+		({
+			new BehaviorSequence
+				({
+					new BehaviorAction(Aim)
+				})
+		})
+	);
+
+	//m_pBehaviorTree = new BehaviorTree(pBlackboard,
+	//	new BehaviorSelector({
+	//		BehaviorAction(Aim)	
+	//	}));
 
 }
 
@@ -127,67 +144,21 @@ void Plugin::ProcessEvents(const SDL_Event& e)
 //This function calculates the new SteeringOutput, called once per frame
 SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 {
+	auto pBlackboard = m_pBehaviorTree->GetBlackboard();
+
 	auto steering = SteeringPlugin_Output();
 
-	//Use the Interface (IAssignmentInterface) to 'interface' with the AI_Framework
-	auto agentInfo = m_pInterface->Agent_GetInfo();
+	m_Target = Elite::Vector2(20.0f, 60.0f);
 
-	//Retrieve the current location of our CheckPoint
-	auto checkpointLocation = m_pInterface->World_GetCheckpointLocation();
+	pBlackboard->ChangeData("EnemyPos", m_Target);
+	pBlackboard->ChangeData("Interface", m_pInterface);
 
-	//Use the navmesh to calculate the next navmesh point
-	auto nextTargetPos = m_pInterface->NavMesh_GetClosestPathPoint(checkpointLocation);
-
-	auto vHousesInFOV = GetHousesInFOV();
-	auto vEntitiesInFOV = GetEntitiesInFOV();
-
-	FillEnemyVec(dt, vEntitiesInFOV);
-	
-	Elite::Vector2 evadeVelocity{};
-
-	if (m_VecEnemies.size() > 0 || agentInfo.Bitten)
-	{
-		evadeVelocity = Evade();
-		m_CanRun = true;
-
-		Elite::Vector2 normalSeekVelocity = SimpleSeeking(nextTargetPos, agentInfo);
-
-
-		steering.LinearVelocity = CalculateFinalVelocityWithBlend(normalSeekVelocity, evadeVelocity, 0.6f, 0.4f);
-
-
-		steering.AutoOrientate = true;
-
-		steering.RunMode = false;
-
-		return steering;
-	}
-
-	if (agentInfo.IsInHouse)
-	{
-		//spin in circle
-		//look at items around me
-		//determine what I need
-		FillItemVec(vEntitiesInFOV, vHousesInFOV);
-	}
-
-	for (auto house : vHousesInFOV)
-	{
-		m_pHouseTracker->AddHouse(house);
-	}
-
-	Elite::Vector2 normalSeekVelocity = SimpleSeeking(nextTargetPos, agentInfo);
-	
-	steering.LinearVelocity = normalSeekVelocity;
-
-	if (m_AngSpeed <= 0.2f) m_AngSpeed += 0.01f;
-	else m_AngSpeed -= 0.01f;
+	m_pBehaviorTree->Update();
 
 	steering.AngularVelocity = m_AngSpeed;
-
 	steering.AutoOrientate = false;
 
-	steering.RunMode = false;
+	steering.LinearVelocity = Elite::Vector2(3.0f, 2.0f);
 
 	return steering;
 }

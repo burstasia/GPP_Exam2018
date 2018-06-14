@@ -291,7 +291,7 @@ BehaviorState Aim(Blackboard* pBlackboard)
 	IExamInterface* pInterface;
 	Elite::Vector2 enemyPos;
 	Elite::Vector2 vecBetweenAgentAndEnemy;
-	float angSpeed;
+	float *angSpeed = new float{};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
 		pBlackboard->GetData("EnemyPos", enemyPos)&&
@@ -315,11 +315,11 @@ BehaviorState Aim(Blackboard* pBlackboard)
 
 	if (angle < 0.0f)
 	{
-		angSpeed = -1.0f;
+		*angSpeed = -1.0f;
 	}
 	else
 	{
-		angSpeed = 1.0f;
+		*angSpeed = 1.0f;
 	}
 
 	if (angle > 2.0f)
