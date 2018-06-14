@@ -184,6 +184,8 @@ bool HaveAmmo(Blackboard *pBlackboard)
 			return true;
 		}
 	}
+
+	return false;
 }
 
 bool CloseItem(Blackboard * pBlackboard)
@@ -261,7 +263,8 @@ BehaviorState UseMedkit(Blackboard *pBlackboard)
 BehaviorState Shoot(Blackboard * pBlackboard)
 {
 	IExamInterface* pInterface;
-	ItemInfo iInfo{};
+	ItemInfo iInfo{}; //Nicole this is fine don't try to change it
+
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface);
 
@@ -275,9 +278,32 @@ BehaviorState Shoot(Blackboard * pBlackboard)
 		pInterface->Inventory_GetItem(i, iInfo);
 		if (iInfo.Type == eItemType::PISTOL)
 		{
+			float ammo = pInterface->Item_GetMetadata(iInfo, "ammo");
 			pInterface->Inventory_UseItem(i);
 			return BehaviorState::Success;
 		}
 	}
 	return BehaviorState::Failure;
+}
+
+BehaviorState Aim(Blackboard* pBlackboard)
+{
+	IExamInterface* pInterface;
+	Elite::Vector2 enemyPos;
+	Elite::Vector2 vecBetweenAgentAndEnemy;
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("EnemyPos", enemyPos);
+
+	if (!dataAvailiable)
+	{
+		return BehaviorState::Failure;
+	}
+
+	vecBetweenAgentAndEnemy =(enemyPos - pInterface->Agent_GetInfo().Position);
+	Elite::Normalize(vecBetweenAgentAndEnemy);
+
+
+
+
 }
