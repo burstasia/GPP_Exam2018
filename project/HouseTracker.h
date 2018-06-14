@@ -16,7 +16,7 @@ public:
 	~HouseTracker();
 
 	void AddHouse(const HouseInfo& info);
-	void AddItemsToHouse(const vector<Item>& items, const Elite::Vector2& pos);
+	void AddItemToHouse(const Item& item, const Elite::Vector2& pos);
 	House GetClosestHouse(const Elite::Vector2& currPos, float& distance);
 
 private:

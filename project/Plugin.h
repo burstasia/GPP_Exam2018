@@ -6,6 +6,7 @@
 class IBaseInterface;
 class IExamInterface;
 class ItemTracker;
+class HouseTracker;
 
 class Plugin :public IExamPlugin
 {
@@ -35,6 +36,7 @@ private:
 	vector<Enemy> m_VecEnemies;
 	EnemyEvasion* m_pEnemyEvasion;
 	ItemTracker* m_pItemTracker;
+	HouseTracker* m_pHouseTracker;
 
 	Elite::Vector2 m_Target = {};
 	bool m_CanRun = false; 
@@ -48,7 +50,7 @@ private:
 	//this function fills my m_VecEnemies and updates my EnemyEvasion class
 	void FillEnemyVec(float dt, const vector<EntityInfo>& entitiesFOV);
 	//fill with items around me
-	void FillItemVec(const vector<EntityInfo>& entitiesFOV);
+	void FillItemVec(const vector<EntityInfo>& entitiesFOV, const vector<HouseInfo>& housesInFOV);
 
 	//find next target pos
 	Elite::Vector2 Evade();

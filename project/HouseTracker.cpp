@@ -26,13 +26,22 @@ void HouseTracker::AddHouse(const HouseInfo & info)
 	if (!found) m_HouseVec.push_back(House{ info, false, {} });
 }
 
-void HouseTracker::AddItemsToHouse(const vector<Item>& items, const Elite::Vector2& pos)
+void HouseTracker::AddItemToHouse(const Item& item, const Elite::Vector2& pos)
 {
-	for (auto house : m_HouseVec)
+	bool found = false;
+
+	for (auto &house : m_HouseVec)
 	{
 		if (house.info.Center == pos)
 		{
-			house.items = items;
+			for (auto itemRef : house.items)
+			{
+				if (itemRef.pos == item.pos)
+				{
+					found = true;
+				}
+			}
+			if (!found) house.items.push_back(item);
 		}
 	}
 }

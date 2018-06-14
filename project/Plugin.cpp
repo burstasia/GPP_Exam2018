@@ -6,6 +6,7 @@
 #include "Behaviors.h"
 #include "Blackboard.h"
 #include "ItemTracker.h"
+#include "HouseTracker.h"
 
 //Called only once, during initialization
 void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
@@ -24,6 +25,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	//Create EnemyEvasion class to use to store enemies
 	m_pEnemyEvasion = new EnemyEvasion(2.0f);
 	m_pItemTracker = new ItemTracker();
+	m_pHouseTracker = new HouseTracker();
 
 	auto pBlackboard = new Blackboard();
 	pBlackboard->AddData("AgentInfo", m_pInterface->Agent_GetInfo());
@@ -136,6 +138,7 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 	//Use the navmesh to calculate the next navmesh point
 	auto nextTargetPos = m_pInterface->NavMesh_GetClosestPathPoint(checkpointLocation);
 
+	auto vHousesInFOV = GetHousesInFOV();
 	auto vEntitiesInFOV = GetEntitiesInFOV();
 
 	FillEnemyVec(dt, vEntitiesInFOV);
@@ -165,11 +168,14 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 		//spin in circle
 		//look at items around me
 		//determine what I need
-		FillItemVec(vEntitiesInFOV);
-
-
-
+		FillItemVec(vEntitiesInFOV, vHousesInFOV);
 	}
+
+	for (auto house : vHousesInFOV)
+	{
+		m_pHouseTracker->AddHouse(house);
+	}
+
 	Elite::Vector2 normalSeekVelocity = SimpleSeeking(nextTargetPos, agentInfo);
 	
 	steering.LinearVelocity = normalSeekVelocity;
@@ -251,10 +257,11 @@ void Plugin::FillEnemyVec(float dt, const vector<EntityInfo>& entitiesFOV)
 	m_VecEnemies = m_pEnemyEvasion->GetEnemyVec();
 }
 
-void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV)
+void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV, const vector<HouseInfo>& housesInFOV)
 {
 	vector<ItemInfo> vItemsInFOV;
 	ItemInfo iInfo = {};
+
 	for (auto entity : entitiesFOV)
 	{
 		if (entity.Type == eEntityType::ITEM)
@@ -266,11 +273,16 @@ void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV)
 				vItemsInFOV.push_back(iInfo);
 
 				m_pItemTracker->AddItem(iInfo.Type, iInfo.Location);
+
+				if (m_pInterface->Agent_GetInfo().IsInHouse)
+				{
+					m_pHouseTracker->AddItemToHouse({ iInfo.Type, iInfo.Location }, housesInFOV.at(0).Center);
+				}
 			}	
 		}
 	}
 
-
+	
 	//m_VecEnemies = m_pEnemyEvasion->GetEnemyVec();
 }
 
