@@ -8,6 +8,7 @@ class IExamInterface;
 class ItemTracker;
 class HouseTracker;
 class BehaviorTree;
+class PlayerTracker;
 
 class Plugin :public IExamPlugin
 {
@@ -39,12 +40,14 @@ private:
 	ItemTracker* m_pItemTracker;
 	HouseTracker* m_pHouseTracker;
 	BehaviorTree* m_pBehaviorTree;
+	PlayerTracker* m_pPlayerTracker;
 
 	Elite::Vector2 m_Target = {};
 
 	deque<Elite::Vector2> m_pTargets{};
 
 	bool m_InHousePrevFrame = false;
+	bool m_CheckPointSet = false;
 
 	bool m_CanRun = false; 
 	bool m_GrabItem = false; 

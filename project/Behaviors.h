@@ -6,7 +6,7 @@
 #include "EliteMath/EVector2.h"
 #include "ItemTracker.h"
 #include "HouseTracker.h"
-
+#include "PlayerTracker.h"
 //*** GENERAL BEHAVIORS ***
 
 //conditionals
@@ -245,7 +245,11 @@ bool InHouse(Blackboard * pBlackboard)
 
 	if (!dataAvailiable) return false;
 
-	if (pInterface->Agent_GetInfo().IsInHouse) return true;
+	if (pInterface->Agent_GetInfo().IsInHouse)
+	{
+		std::cout << "In house" << std::endl;
+		return true;
+	}
 	
 	return false;
 }
@@ -253,15 +257,16 @@ bool InHouse(Blackboard * pBlackboard)
 bool TargetReached(Blackboard *pBlackboard)
 {
 	IExamInterface* pInterface;
-	Elite::Vector2 target;
+	Elite::Vector2* target = {};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
 		pBlackboard->GetData("target", target);
 
 	if (!dataAvailiable) return false;
 
-	if (Elite::Distance(pInterface->Agent_GetInfo().Position, target) < 5.0f)
+	if (Elite::Distance(pInterface->Agent_GetInfo().Position, *target) < 5.0f)
 	{
+		std::cout << "target reached" << std::endl;
 		return true;
 	}
 	else return false;
@@ -277,7 +282,20 @@ bool WasNotInHousePrevFrame(Blackboard *pBlackboard)
 
 	if (!dataAvailiable) return false;
 
-	if (inHousePrevFrame) return true;
+	if (inHousePrevFrame) return false;
+	else return true;
+}
+
+bool IsCheckpointNotSet(Blackboard *pBlackboard)
+{
+	bool *isCheckpointSet;
+
+	auto dataAvailiable = pBlackboard->GetData("CheckpointSet", isCheckpointSet);
+
+	if (!*isCheckpointSet)
+	{
+		return true;
+	}
 	else return false;
 }
 //actions
@@ -402,41 +420,67 @@ BehaviorState Aim(Blackboard* pBlackboard)
 
 }
 
-BehaviorState Pop(Blackboard *pBlackboard)
+BehaviorState PopCheckpoint(Blackboard *pBlackboard)
 {
 	IExamInterface* pInterface;
-	deque<Elite::Vector2> * targets{};
+	PlayerTracker * pTargets{};
+	bool * isCheckpointSet{};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
-		pBlackboard->GetData("targetDeque", targets);
+		pBlackboard->GetData("targetDeque", pTargets) &&
+		pBlackboard->GetData("CheckpointSet", isCheckpointSet);
 
 	if (!dataAvailiable) return BehaviorState::Failure;
 
-	targets->pop_front();
+	pTargets->GetDeque().pop_front();
+	*isCheckpointSet = false;
+
+	return BehaviorState::Success;
+}
+
+BehaviorState Pop(Blackboard *pBlackboard)
+{
+	IExamInterface* pInterface;
+	PlayerTracker * pTargets{};
+	bool * isCheckpointSet{};
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("targetDeque", pTargets)&&
+		pBlackboard->GetData("CheckpointSet", isCheckpointSet);
+
+	if (!dataAvailiable) return BehaviorState::Failure;
+
+	pTargets->GetDeque().pop_front();
+
 	return BehaviorState::Success;
 }
 
 BehaviorState PushFourCorners(Blackboard *pBlackboard)
 {
 	IExamInterface* pInterface;
-	HouseTracker houseTracker;
-	deque<Elite::Vector2> *targets{};
+	HouseTracker* houseTracker = {};
+	PlayerTracker * pTargets{};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface)&&
 		pBlackboard->GetData("HouseTracker", houseTracker) &&
-		pBlackboard->GetData("targetDeque", targets);
+		pBlackboard->GetData("targetDeque", pTargets);
 
 	if (!dataAvailiable) return BehaviorState::Failure;
 	float distance{};
 
-	House house = houseTracker.GetClosestHouse(pInterface->Agent_GetInfo().Position, distance);
+	House house = houseTracker->GetClosestHouse(pInterface->Agent_GetInfo().Position, distance);
 
 	auto tempVec = house.searchPositions;
 
-	targets->push_front(tempVec.at(0));
-	targets->push_front(tempVec.at(1));
-	targets->push_front(tempVec.at(2));
-	targets->push_front(tempVec.at(3));
+	pTargets->GetDeque().push_front(tempVec.at(0));
+	pTargets->GetDeque().push_front(tempVec.at(1));
+	pTargets->GetDeque().push_front(tempVec.at(2));
+	pTargets->GetDeque().push_front(tempVec.at(3));
+
+	pInterface->Draw_Circle(tempVec.at(0), 2.0f, { 0.0f,1.0f,0.0f });
+	pInterface->Draw_Circle(tempVec.at(1), 2.0f, { 0.0f,1.0f,0.0f });
+	pInterface->Draw_Circle(tempVec.at(2), 2.0f, { 0.0f,1.0f,0.0f });
+	pInterface->Draw_Circle(tempVec.at(3), 2.0f, { 0.0f,1.0f,0.0f });
 
 	return BehaviorState::Success;
 
@@ -445,18 +489,36 @@ BehaviorState PushFourCorners(Blackboard *pBlackboard)
 BehaviorState SetTarget(Blackboard *pBlackboard)
 {
 	IExamInterface* pInterface;
-	deque<Elite::Vector2> targets;
+	PlayerTracker * pTargets{};
 	Elite::Vector2 *target{};
+	bool * checkpointSet{};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
-		pBlackboard->GetData("targetDeque", targets) &&
+		pBlackboard->GetData("targetDeque", pTargets) &&
+		pBlackboard->GetData("CheckpointSet", checkpointSet) &&
 		pBlackboard->GetData("target", target);
 
-	if (!dataAvailiable) return BehaviorState::Failure;
-
-	if (targets.size() > 0)
+	if (!dataAvailiable)
 	{
-		*target = targets.at(0);
+		return BehaviorState::Failure;
+	}
+
+	if (pTargets->GetDeque().size() > 0)
+	{
+		if (pTargets->GetDeque().at(0) == Elite::Vector2{0.0f, 0.0f})
+		{
+			auto checkpointLocation = pInterface->World_GetCheckpointLocation();
+
+			//Use the navmesh to calculate the next navmesh point
+			pTargets->GetDeque().push_front(pInterface->NavMesh_GetClosestPathPoint(checkpointLocation));
+
+			*target = pInterface->NavMesh_GetClosestPathPoint(checkpointLocation);
+			*checkpointSet = true;
+
+			return BehaviorState::Success;
+		}
+		*target = pTargets->GetDeque().at(0);
+		std::cout << target->x  << " : x" << "\n" << target->y << " : y" << std::endl;
 		return BehaviorState::Success;
 	}
 
@@ -466,10 +528,12 @@ BehaviorState SetTarget(Blackboard *pBlackboard)
 BehaviorState PushCheckpoint(Blackboard *pBlackboard)
 {
 	IExamInterface* pInterface;
-	deque<Elite::Vector2> targets{};
+	PlayerTracker * pTargets{};
+	bool * checkpointSet{};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
-		pBlackboard->GetData("targetDeque", targets);
+		pBlackboard->GetData("targetDeque", pTargets) &&
+		pBlackboard->GetData("CheckpointSet", checkpointSet);
 
 	if (!dataAvailiable) return BehaviorState::Failure;
 
@@ -477,9 +541,9 @@ BehaviorState PushCheckpoint(Blackboard *pBlackboard)
 	auto checkpointLocation = pInterface->World_GetCheckpointLocation();
 
 	//Use the navmesh to calculate the next navmesh point
-	targets.push_front(pInterface->NavMesh_GetClosestPathPoint(checkpointLocation));
+	pTargets->GetDeque().push_front(pInterface->NavMesh_GetClosestPathPoint(checkpointLocation));
 
-	pBlackboard->ChangeData("targetDeque", targets);
+	*checkpointSet = true;
 
 	return BehaviorState::Success;
 }

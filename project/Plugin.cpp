@@ -26,6 +26,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	m_pEnemyEvasion = new EnemyEvasion(2.0f);
 	m_pItemTracker = new ItemTracker();
 	m_pHouseTracker = new HouseTracker();
+	m_pPlayerTracker = new PlayerTracker();
 
 	auto pBlackboard = new Blackboard();
 	pBlackboard->AddData("AgentInfo", m_pInterface->Agent_GetInfo());
@@ -35,8 +36,11 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	pBlackboard->AddData("EnemyPos", m_Target);
 	pBlackboard->AddData("InHousePrevFrame", m_InHousePrevFrame);
 	pBlackboard->AddData("HouseTracker", m_pHouseTracker);
-	pBlackboard->AddData("targetDeque", &m_pTargets);
-	pBlackboard->AddData("target", m_Target);
+	pBlackboard->AddData("targetDeque", m_pPlayerTracker);
+	pBlackboard->AddData("target", &m_Target);
+	pBlackboard->AddData("CheckpointSet", &m_CheckPointSet);
+
+
 	m_pBehaviorTree = new BehaviorTree
 	(pBlackboard,
 		new BehaviorSelector
@@ -46,22 +50,30 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 					new BehaviorConditional(InHouse),
 					new BehaviorConditional(WasNotInHousePrevFrame),
 					new BehaviorAction(Pop),
-					new BehaviorAction(PushFourCorners)
+					new BehaviorAction(PushFourCorners),
+					new BehaviorAction(SetTarget)
 				}),
 			new BehaviorSequence
 				({
 					new BehaviorConditional(InHouse),
-					new BehaviorAction(SetTarget),
 					new BehaviorConditional(TargetReached),
-					new BehaviorAction(Pop)
+					new BehaviorAction(Pop),
+					new BehaviorAction(SetTarget)
 					
 				}),
-			new BehaviorSequence
+			new BehaviorSelector
 				({
-					new BehaviorAction(PushCheckpoint),
-					new BehaviorAction(SetTarget),
-					new BehaviorConditional(TargetReached),
-					new BehaviorAction(Pop)
+				new BehaviorSequence
+					({
+						new BehaviorConditional(IsCheckpointNotSet),
+						new BehaviorAction(PushCheckpoint),
+						new BehaviorAction(SetTarget),
+					}),
+				new BehaviorSequence
+					({
+						new BehaviorConditional(TargetReached),
+						new BehaviorAction(PopCheckpoint)
+					})
 				})
 		})
 	);
@@ -88,7 +100,7 @@ void Plugin::DllShutdown()
 	SAFE_DELETE(m_pItemTracker);
 	SAFE_DELETE(m_pHouseTracker);
 	SAFE_DELETE(m_pBehaviorTree);
-
+	SAFE_DELETE(m_pPlayerTracker);
 }
 
 //Called only once, during initialization
@@ -171,11 +183,16 @@ void Plugin::ProcessEvents(const SDL_Event& e)
 //This function calculates the new SteeringOutput, called once per frame
 SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 {
+	auto vHousesInFOV = GetHousesInFOV();//uses m_pInterface->Fov_GetHouseByIndex(...)
+	auto vEntitiesInFOV = GetEntitiesInFOV(); //uses m_pInterface->Fov_GetEntityByIndex(...)
+
+	FillItemVec(vEntitiesInFOV, vHousesInFOV);
+
 	auto pBlackboard = m_pBehaviorTree->GetBlackboard();
 
 	auto steering = SteeringPlugin_Output();
 
-	m_pTargets.push_front({ 0.0f,0.0f });
+	//m_pTargets.push_front({ 0.0f,0.0f });
 
 	pBlackboard->ChangeData("EnemyPos", m_Target);
 	pBlackboard->ChangeData("Interface", m_pInterface);
@@ -184,7 +201,8 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 
 	m_pBehaviorTree->Update();
 
-	steering.LinearVelocity = SimpleSeeking(m_Target, m_pInterface->Agent_GetInfo());
+	Elite::Vector2 tempTarget = m_pInterface->NavMesh_GetClosestPathPoint(m_Target);
+	steering.LinearVelocity = SimpleSeeking(tempTarget, m_pInterface->Agent_GetInfo());
 
 	steering.AngularVelocity = m_AngSpeed;
 	steering.AutoOrientate = true;
@@ -265,7 +283,7 @@ void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV, const vector<Hou
 	vector<ItemInfo> vItemsInFOV;
 	ItemInfo iInfo = {};
 
-	m_pHouseTracker->AddHouse(housesInFOV.at(0));
+	if(housesInFOV.size() > 0) m_pHouseTracker->AddHouse(housesInFOV.at(0));
 
 	for (auto entity : entitiesFOV)
 	{

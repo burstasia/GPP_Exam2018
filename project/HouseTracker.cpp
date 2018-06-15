@@ -25,8 +25,8 @@ void HouseTracker::AddHouse(const HouseInfo & info)
 
 	float width = info.Size.x;
 	float depth = info.Size.y;
-	float widthDiv2 = width / 2.0f;
-	float depthDiv2 = depth / 2.0f;
+	float widthDiv2 = width / 4.0f;
+	float depthDiv2 = depth / 4.0f;
 
 	if (!found) m_HouseVec.push_back(House{ info, false, {} , {Elite::Vector2{info.Center.x + widthDiv2, info.Center.y + depthDiv2 }
 															,  Elite::Vector2{ info.Center.x - widthDiv2, info.Center.y + depthDiv2 }
@@ -57,7 +57,7 @@ void HouseTracker::AddItemToHouse(const Item& item, const Elite::Vector2& currHo
 House HouseTracker::GetClosestHouse(const Elite::Vector2 & currPos, float & distance)
 {
 	distance = Elite::Distance(m_HouseVec.at(0).info.Center, currPos);
-	House houseReturn{};
+	House houseReturn{ m_HouseVec.at(0) };
 
 	for (auto house : m_HouseVec)
 	{
