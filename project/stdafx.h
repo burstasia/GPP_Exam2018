@@ -9,6 +9,7 @@
 #include <random>
 #include <stdio.h>
 #include <vector>
+#include <map>
 #include <list>
 #include <queue>
 #include <algorithm>

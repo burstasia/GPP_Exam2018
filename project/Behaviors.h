@@ -5,6 +5,8 @@
 #include "IExamInterface.h"
 #include "EliteMath/EVector2.h"
 #include "ItemTracker.h"
+#include "HouseTracker.h"
+
 //*** GENERAL BEHAVIORS ***
 
 //conditionals
@@ -169,6 +171,7 @@ bool HaveAmmo(Blackboard *pBlackboard)
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface);
 
+
 	if (!dataAvailiable)
 	{
 		return false;
@@ -210,6 +213,28 @@ bool CloseItem(Blackboard * pBlackboard)
 		return false;
 	}
 	else return true;
+}
+
+bool InMiddleHouse(Blackboard * pBlackboard)
+{
+	HouseTracker houseTracker;
+	IExamInterface* pInterface;
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("HouseTracker", houseTracker);
+
+	if (!dataAvailiable) return false;
+
+	float distance;
+
+	House house = houseTracker.GetClosestHouse(pInterface->Agent_GetInfo().Position, distance);
+
+	/*if (distance <= 2.0f && pInterface->Agent_GetInfo().IsInHouse)
+	{
+		return true;
+	}*/
+
+	return false;
 }
 //actions
 BehaviorState EatFood(Blackboard *pBlackboard)
@@ -332,3 +357,4 @@ BehaviorState Aim(Blackboard* pBlackboard)
 
 
 }
+

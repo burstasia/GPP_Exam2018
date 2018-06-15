@@ -55,6 +55,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 //Called only once
 void Plugin::DllInit()
 {
+	//_crtBreakAlloc(156);
 	//Called when the plugin is loaded
 }
 
@@ -62,6 +63,11 @@ void Plugin::DllInit()
 void Plugin::DllShutdown()
 {
 	//Called wheb the plugin gets unloaded
+	SAFE_DELETE(m_pEnemyEvasion);
+	SAFE_DELETE(m_pItemTracker);
+	SAFE_DELETE(m_pHouseTracker);
+	SAFE_DELETE(m_pBehaviorTree);
+
 }
 
 //Called only once, during initialization
