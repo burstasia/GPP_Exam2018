@@ -236,6 +236,50 @@ bool InMiddleHouse(Blackboard * pBlackboard)
 
 	return false;
 }
+
+bool InHouse(Blackboard * pBlackboard)
+{
+	IExamInterface* pInterface;
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface);
+
+	if (!dataAvailiable) return false;
+
+	if (pInterface->Agent_GetInfo().IsInHouse) return true;
+	
+	return false;
+}
+
+bool TargetReached(Blackboard *pBlackboard)
+{
+	IExamInterface* pInterface;
+	Elite::Vector2 target;
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("target", target);
+
+	if (!dataAvailiable) return false;
+
+	if (Elite::Distance(pInterface->Agent_GetInfo().Position, target) < 5.0f)
+	{
+		return true;
+	}
+	else return false;
+}
+
+bool WasNotInHousePrevFrame(Blackboard *pBlackboard)
+{
+	IExamInterface* pInterface;
+	bool inHousePrevFrame;
+
+	auto dataAvailiable = pBlackboard->GetData("InHousePrevFrame", inHousePrevFrame) &&
+		pBlackboard->GetData("Interface", pInterface);
+
+	if (!dataAvailiable) return false;
+
+	if (inHousePrevFrame) return true;
+	else return false;
+}
 //actions
 BehaviorState EatFood(Blackboard *pBlackboard)
 {
@@ -358,3 +402,84 @@ BehaviorState Aim(Blackboard* pBlackboard)
 
 }
 
+BehaviorState Pop(Blackboard *pBlackboard)
+{
+	IExamInterface* pInterface;
+	deque<Elite::Vector2> * targets{};
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("targetDeque", targets);
+
+	if (!dataAvailiable) return BehaviorState::Failure;
+
+	targets->pop_front();
+	return BehaviorState::Success;
+}
+
+BehaviorState PushFourCorners(Blackboard *pBlackboard)
+{
+	IExamInterface* pInterface;
+	HouseTracker houseTracker;
+	deque<Elite::Vector2> *targets{};
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface)&&
+		pBlackboard->GetData("HouseTracker", houseTracker) &&
+		pBlackboard->GetData("targetDeque", targets);
+
+	if (!dataAvailiable) return BehaviorState::Failure;
+	float distance{};
+
+	House house = houseTracker.GetClosestHouse(pInterface->Agent_GetInfo().Position, distance);
+
+	auto tempVec = house.searchPositions;
+
+	targets->push_front(tempVec.at(0));
+	targets->push_front(tempVec.at(1));
+	targets->push_front(tempVec.at(2));
+	targets->push_front(tempVec.at(3));
+
+	return BehaviorState::Success;
+
+}
+
+BehaviorState SetTarget(Blackboard *pBlackboard)
+{
+	IExamInterface* pInterface;
+	deque<Elite::Vector2> targets;
+	Elite::Vector2 *target{};
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("targetDeque", targets) &&
+		pBlackboard->GetData("target", target);
+
+	if (!dataAvailiable) return BehaviorState::Failure;
+
+	if (targets.size() > 0)
+	{
+		*target = targets.at(0);
+		return BehaviorState::Success;
+	}
+
+	else return BehaviorState::Failure;
+}
+
+BehaviorState PushCheckpoint(Blackboard *pBlackboard)
+{
+	IExamInterface* pInterface;
+	deque<Elite::Vector2> targets{};
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("targetDeque", targets);
+
+	if (!dataAvailiable) return BehaviorState::Failure;
+
+	//Retrieve the current location of our CheckPoint
+	auto checkpointLocation = pInterface->World_GetCheckpointLocation();
+
+	//Use the navmesh to calculate the next navmesh point
+	targets.push_front(pInterface->NavMesh_GetClosestPathPoint(checkpointLocation));
+
+	pBlackboard->ChangeData("targetDeque", targets);
+
+	return BehaviorState::Success;
+}

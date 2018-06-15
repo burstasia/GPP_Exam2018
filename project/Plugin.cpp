@@ -33,14 +33,35 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	pBlackboard->AddData("EnemyEvasion", m_pEnemyEvasion);
 	pBlackboard->AddData("AngSpeed", &m_AngSpeed);
 	pBlackboard->AddData("EnemyPos", m_Target);
-
+	pBlackboard->AddData("InHousePrevFrame", m_InHousePrevFrame);
+	pBlackboard->AddData("HouseTracker", m_pHouseTracker);
+	pBlackboard->AddData("targetDeque", &m_pTargets);
+	pBlackboard->AddData("target", m_Target);
 	m_pBehaviorTree = new BehaviorTree
 	(pBlackboard,
 		new BehaviorSelector
 		({
 			new BehaviorSequence
 				({
-					new BehaviorAction(Aim)
+					new BehaviorConditional(InHouse),
+					new BehaviorConditional(WasNotInHousePrevFrame),
+					new BehaviorAction(Pop),
+					new BehaviorAction(PushFourCorners)
+				}),
+			new BehaviorSequence
+				({
+					new BehaviorConditional(InHouse),
+					new BehaviorAction(SetTarget),
+					new BehaviorConditional(TargetReached),
+					new BehaviorAction(Pop)
+					
+				}),
+			new BehaviorSequence
+				({
+					new BehaviorAction(PushCheckpoint),
+					new BehaviorAction(SetTarget),
+					new BehaviorConditional(TargetReached),
+					new BehaviorAction(Pop)
 				})
 		})
 	);
@@ -154,18 +175,23 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 
 	auto steering = SteeringPlugin_Output();
 
-	m_Target = Elite::Vector2(20.0f, 60.0f);
+	m_pTargets.push_front({ 0.0f,0.0f });
 
 	pBlackboard->ChangeData("EnemyPos", m_Target);
 	pBlackboard->ChangeData("Interface", m_pInterface);
+	pBlackboard->ChangeData("InHousePrevFrame", m_InHousePrevFrame);
+	//pBlackboard->ChangeData("targetDeque", m_pTargets);
 
 	m_pBehaviorTree->Update();
 
+	steering.LinearVelocity = SimpleSeeking(m_Target, m_pInterface->Agent_GetInfo());
+
 	steering.AngularVelocity = m_AngSpeed;
-	steering.AutoOrientate = false;
+	steering.AutoOrientate = true;
 
-	steering.LinearVelocity = Elite::Vector2(3.0f, 2.0f);
+	//steering.LinearVelocity = Elite::Vector2(3.0f, 2.0f);
 
+	m_InHousePrevFrame = m_pInterface->Agent_GetInfo().IsInHouse;
 	return steering;
 }
 
@@ -238,6 +264,8 @@ void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV, const vector<Hou
 {
 	vector<ItemInfo> vItemsInFOV;
 	ItemInfo iInfo = {};
+
+	m_pHouseTracker->AddHouse(housesInFOV.at(0));
 
 	for (auto entity : entitiesFOV)
 	{

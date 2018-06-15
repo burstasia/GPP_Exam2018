@@ -190,6 +190,7 @@
     <ClInclude Include="EnemyEvasion.h" />
     <ClInclude Include="HouseTracker.h" />
     <ClInclude Include="ItemTracker.h" />
+    <ClInclude Include="PlayerTracker.h" />
     <ClInclude Include="Plugin.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
@@ -198,6 +199,7 @@
     <ClCompile Include="EnemyEvasion.cpp" />
     <ClCompile Include="HouseTracker.cpp" />
     <ClCompile Include="ItemTracker.cpp" />
+    <ClCompile Include="PlayerTracker.cpp" />
     <ClCompile Include="Plugin.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

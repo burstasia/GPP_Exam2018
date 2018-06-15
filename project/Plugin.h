@@ -41,6 +41,11 @@ private:
 	BehaviorTree* m_pBehaviorTree;
 
 	Elite::Vector2 m_Target = {};
+
+	deque<Elite::Vector2> m_pTargets{};
+
+	bool m_InHousePrevFrame = false;
+
 	bool m_CanRun = false; 
 	bool m_GrabItem = false; 
 	bool m_UseItem = false; 

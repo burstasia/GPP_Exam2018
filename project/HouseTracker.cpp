@@ -28,10 +28,10 @@ void HouseTracker::AddHouse(const HouseInfo & info)
 	float widthDiv2 = width / 2.0f;
 	float depthDiv2 = depth / 2.0f;
 
-	if (!found) m_HouseVec.push_back(House{ info, false, {} /*, {make_pair(Elite::Vector2{info.Center.x + widthDiv2, info.Center.y + depthDiv2 }, false)
-															,  make_pair(Elite::Vector2{ info.Center.x - widthDiv2, info.Center.y + depthDiv2 }, false)
-															,  make_pair(Elite::Vector2{ info.Center.x - widthDiv2, info.Center.y - depthDiv2 }, false)
-															,  make_pair(Elite::Vector2{ info.Center.x + widthDiv2, info.Center.y - depthDiv2 }, false) }*/ });
+	if (!found) m_HouseVec.push_back(House{ info, false, {} , {Elite::Vector2{info.Center.x + widthDiv2, info.Center.y + depthDiv2 }
+															,  Elite::Vector2{ info.Center.x - widthDiv2, info.Center.y + depthDiv2 }
+															,  Elite::Vector2{ info.Center.x - widthDiv2, info.Center.y - depthDiv2 }
+															,  Elite::Vector2{ info.Center.x + widthDiv2, info.Center.y - depthDiv2 } } });
 }
 
 void HouseTracker::AddItemToHouse(const Item& item, const Elite::Vector2& currHouseCenter)
@@ -69,6 +69,20 @@ House HouseTracker::GetClosestHouse(const Elite::Vector2 & currPos, float & dist
 	} 
 
 	return houseReturn;
+}
+
+const vector<Elite::Vector2>& HouseTracker::GetSearchPoints(const Elite::Vector2 & currHouseCenter)
+{
+	// TODO: insert return statement here
+	for (auto &house : m_HouseVec)
+	{
+		if (house.info.Center == currHouseCenter)
+		{
+			return house.searchPositions;
+		}
+	}
+
+	return vector<Elite::Vector2>{};
 }
 
 //vector<Elite::Vector2, bool>& HouseTracker::GetSearchPoints(const Elite::Vector2 & currHouseCenter)
