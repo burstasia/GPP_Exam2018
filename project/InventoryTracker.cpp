@@ -39,7 +39,7 @@ bool InventoryTracker::RemoveItem(int slotIndex)
 	return false;
 }
 
-bool InventoryTracker::HasItem(int & slotIndex, const ItemInfo & info)
+bool InventoryTracker::HasItem(int & slotIndex, const eItemType & info)
 {
 	//HasItem goes through the array and checks for a certain item
 	//slotIndex will = the index of this item
@@ -47,7 +47,7 @@ bool InventoryTracker::HasItem(int & slotIndex, const ItemInfo & info)
 	{
 		for (size_t i = 0; i < 5; i++)
 		{
-			if (m_InventoryArr[i].item.Type == info.Type && m_InventoryArr[i].hasItem)
+			if (m_InventoryArr[i].item.Type == info && m_InventoryArr[i].hasItem)
 			{
 				slotIndex = i;
 				return true;

@@ -16,7 +16,7 @@ public:
 
 	bool AddItem(int slotIndex, const ItemInfo& info);
 	bool RemoveItem(int slotIndex);
-	bool HasItem(int& slotIndex, const ItemInfo& info);
+	bool HasItem(int& slotIndex, const eItemType& info);
 
 private:
 	vector<InventorySlot> m_Inventory;

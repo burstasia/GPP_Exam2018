@@ -7,6 +7,7 @@
 #include "ItemTracker.h"
 #include "HouseTracker.h"
 #include "PlayerTracker.h"
+#include "InventoryTracker.h"
 //*** GENERAL BEHAVIORS ***
 
 //conditionals
@@ -54,24 +55,30 @@ bool HasFood(Blackboard* pBlackboard)
 {
 //	auto hasFood = false;
 	IExamInterface* pInterface;
+	InventoryTracker * pInventoryTracker{};
+
 	ItemInfo iInfo{};
 
-	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface);
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface)&&
+		pBlackboard->GetData("ItemTracker", pInventoryTracker);
 
 	if (!dataAvailiable)
 	{
 		return false;
 	}
 
-	//Go through all the slots and check if any is food
-	for (UINT i = 0; i < pInterface->Inventory_GetCapacity(); i++)
+	int slot;
+	eItemType type = eItemType::FOOD;
+	if (pInventoryTracker->HasItem(slot, type))
 	{
-		pInterface->Inventory_GetItem(i, iInfo);
+		pInterface->Inventory_GetItem(slot, iInfo);
 		if (iInfo.Type == eItemType::FOOD)
 		{
 			return true;
 		}
 	}
+	else return false;
+
 	
 	return false;
 }
@@ -80,24 +87,28 @@ bool HasMedkit(Blackboard* pBlackboard)
 {
 //	auto hasMedkit = false;
 	IExamInterface* pInterface;
+	InventoryTracker * pInventoryTracker{};
 	ItemInfo iInfo{};
 
-	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface);
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("ItemTracker", pInventoryTracker);
 
 	if (!dataAvailiable)
 	{
 		return false;
 	}
 
-	//Go through all the slots and check if any is medkit
-	for (UINT i = 0; i < pInterface->Inventory_GetCapacity(); i++)
+	int slot;
+	eItemType type = eItemType::MEDKIT;
+	if (pInventoryTracker->HasItem(slot, type))
 	{
-		pInterface->Inventory_GetItem(i, iInfo);
+		pInterface->Inventory_GetItem(slot, iInfo);
 		if (iInfo.Type == eItemType::MEDKIT)
 		{
 			return true;
 		}
 	}
+	else return false;
 
 	return false;
 }
@@ -125,24 +136,28 @@ bool EnemiesInFOV(Blackboard* pBlackboard)
 bool HasGun(Blackboard* pBlackboard)
 {
 	IExamInterface* pInterface;
+	InventoryTracker * pInventoryTracker{};
 	ItemInfo iInfo{};
 
-	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface);
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("ItemTracker", pInventoryTracker);
 
 	if (!dataAvailiable)
 	{
 		return false;
 	}
 
-	//Go through all the slots and check if any is gun
-	for (UINT i = 0; i < pInterface->Inventory_GetCapacity(); i++)
+	int slot;
+	eItemType type = eItemType::PISTOL;
+	if (pInventoryTracker->HasItem(slot, type))
 	{
-		pInterface->Inventory_GetItem(i, iInfo);
+		pInterface->Inventory_GetItem(slot, iInfo);
 		if (iInfo.Type == eItemType::PISTOL)
 		{
 			return true;
 		}
 	}
+	else return false;
 
 	return false;
 }
