@@ -60,7 +60,7 @@ bool HasFood(Blackboard* pBlackboard)
 	ItemInfo iInfo{};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface)&&
-		pBlackboard->GetData("ItemTracker", pInventoryTracker);
+		pBlackboard->GetData("InventoryTracker", pInventoryTracker);
 
 	if (!dataAvailiable)
 	{
@@ -91,7 +91,7 @@ bool HasMedkit(Blackboard* pBlackboard)
 	ItemInfo iInfo{};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
-		pBlackboard->GetData("ItemTracker", pInventoryTracker);
+		pBlackboard->GetData("InventoryTracker", pInventoryTracker);
 
 	if (!dataAvailiable)
 	{
@@ -140,7 +140,7 @@ bool HasGun(Blackboard* pBlackboard)
 	ItemInfo iInfo{};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
-		pBlackboard->GetData("ItemTracker", pInventoryTracker);
+		pBlackboard->GetData("InventoryTracker", pInventoryTracker);
 
 	if (!dataAvailiable)
 	{
@@ -165,18 +165,23 @@ bool HasGun(Blackboard* pBlackboard)
 bool InRangeItem(Blackboard* pBlackboard)
 {
 	IExamInterface* pInterface;
-	ItemInfo iInfo{};
+	ItemInfo itemInRange;
 	Elite::Vector2 itemPos{};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
-		pBlackboard->GetData("ItemPos", itemPos);
+		pBlackboard->GetData("ItemInRange", itemInRange);
 
+	if (Elite::Distance({0.0f, 0.0f}, itemInRange.Location) < 0.01f)
+	{
+		return false;
+	}
 	if (!dataAvailiable)
 	{
 		return false;
 	}
 
-	return Elite::Distance(pInterface->Agent_GetInfo().Position, itemPos) < pInterface->Agent_GetInfo().GrabRange;
+	
+	return Elite::Distance(pInterface->Agent_GetInfo().Position, itemInRange.Location) < pInterface->Agent_GetInfo().GrabRange;
 }
 
 bool NewItemsInFOV(Blackboard* pBlackboard)
@@ -282,7 +287,7 @@ bool InHouse(Blackboard * pBlackboard)
 
 	if (pInterface->Agent_GetInfo().IsInHouse)
 	{
-		std::cout << "In house" << std::endl;
+		//std::cout << "In house" << std::endl;
 		return true;
 	}
 	
@@ -333,13 +338,31 @@ bool IsCheckpointNotSet(Blackboard *pBlackboard)
 	}
 	else return false;
 }
+
+bool StartGame(Blackboard* pBlackboard)
+{
+	IExamInterface* pInterface;
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface);
+
+	if (!dataAvailiable) return false;
+
+	if (pInterface->World_GetStats().TimeSurvived < 100.0f)
+	{
+		return true;
+	}
+	else return false;
+
+}
 //actions
 BehaviorState EatFood(Blackboard *pBlackboard)
 {
 	IExamInterface* pInterface;
 	ItemInfo iInfo{};
+	InventoryTracker * pInventoryTracker{};
 
-	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface);
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("InventoryTracker", pInventoryTracker);
 
 	if (!dataAvailiable)
 	{
@@ -352,6 +375,8 @@ BehaviorState EatFood(Blackboard *pBlackboard)
 		if (iInfo.Type == eItemType::FOOD)
 		{
 			pInterface->Inventory_UseItem(i);
+			pInterface->Inventory_RemoveItem(i);
+			pInventoryTracker->RemoveItem(i);
 			return BehaviorState::Success;
 		}
 	}
@@ -548,7 +573,7 @@ BehaviorState SetTarget(Blackboard *pBlackboard)
 			return BehaviorState::Success;
 		}
 		*target = pTargets->GetDeque().at(0);
-		std::cout << target->x  << " : x" << "\n" << target->y << " : y" << std::endl;
+		//std::cout << target->x  << " : x" << "\n" << target->y << " : y" << std::endl;
 		return BehaviorState::Success;
 	}
 
@@ -599,4 +624,42 @@ BehaviorState PushItems(Blackboard *pBlackboard)
 	}
 
 	return BehaviorState::Success;
+}
+
+BehaviorState PickUpItem(Blackboard *pBlackboard)
+{
+	IExamInterface* pInterface;
+	ItemInfo itemInRange{};
+	InventoryTracker * pInventoryTracker{};
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("ItemInRange", itemInRange) &&
+		pBlackboard->GetData("InventoryTracker", pInventoryTracker);
+
+	if (!dataAvailiable) return BehaviorState::Failure;
+
+	if (itemInRange.Type == eItemType::FOOD)
+	{
+		if (pInventoryTracker->AddItem(0, itemInRange))
+		{
+			pInterface->Inventory_AddItem(0, itemInRange);
+		}
+		
+	}
+	else if (itemInRange.Type == eItemType::PISTOL)
+	{
+		if (pInventoryTracker->AddItem(1, itemInRange))
+		{
+			pInterface->Inventory_AddItem(1, itemInRange);
+		}
+	}
+	else if (itemInRange.Type == eItemType::MEDKIT)
+	{
+		if (pInventoryTracker->AddItem(2, itemInRange))
+		{
+			pInterface->Inventory_AddItem(2, itemInRange);
+		}
+	}
+
+	return BehaviorState::Failure;
 }

@@ -27,6 +27,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	m_pItemTracker = new ItemTracker();
 	m_pHouseTracker = new HouseTracker();
 	m_pPlayerTracker = new PlayerTracker();
+	m_pInventoryTracker = new InventoryTracker();
 
 	auto pBlackboard = new Blackboard();
 	pBlackboard->AddData("AgentInfo", m_pInterface->Agent_GetInfo());
@@ -41,6 +42,8 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	pBlackboard->AddData("CheckpointSet", &m_CheckPointSet);
 	pBlackboard->AddData("ItemTracker", m_pItemTracker);
 	pBlackboard->AddData("ItemsInFOV", m_ItemsInFOVVec);
+	pBlackboard->AddData("InventoryTracker", m_pInventoryTracker);
+	pBlackboard->AddData("ItemInRange", m_ItemInRange);
 
 	m_pBehaviorTree = new BehaviorTree
 	(pBlackboard,
@@ -88,6 +91,13 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 				new BehaviorAction(Pop),
 				new BehaviorAction(SetTarget)
 
+				}),
+			//BEHAVIOUR SEQUENCE TO JUST FILL INVENTORY
+			new BehaviorSequence
+				({
+				new BehaviorConditional(StartGame),
+				new BehaviorConditional(InRangeItem),
+				new BehaviorAction(PickUpItem)
 				}),
 			//IF I AM NOT IN A HOUSE I GO TO CHECKPOINTS
 			new BehaviorSelector
@@ -224,6 +234,8 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 	pBlackboard->ChangeData("Interface", m_pInterface);
 	pBlackboard->ChangeData("InHousePrevFrame", m_InHousePrevFrame);
 	pBlackboard->ChangeData("ItemsInFOV", m_ItemsInFOVVec);
+	pBlackboard->ChangeData("ItemInRange", m_ItemInRange);
+	pBlackboard->ChangeData("InventoryTracker", m_pInventoryTracker);
 
 	m_pBehaviorTree->Update();
 
@@ -324,7 +336,7 @@ void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV, const vector<Hou
 				vItemsInFOV.push_back(iInfo);
 
 				m_pItemTracker->AddItem(iInfo.Type, iInfo.Location);
-
+				m_ItemInRange = iInfo;
 				if (m_pInterface->Agent_GetInfo().IsInHouse)
 				{
 					m_pHouseTracker->AddItemToHouse({ iInfo.Type, iInfo.Location }, housesInFOV.at(0).Center);

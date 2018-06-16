@@ -50,6 +50,8 @@ private:
 
 	vector<EntityInfo> m_ItemsInFOVVec;
 
+	ItemInfo m_ItemInRange;
+
 	bool m_InHousePrevFrame = false;
 	bool m_CheckPointSet = false;
 
@@ -60,6 +62,7 @@ private:
 	bool m_DropItem = false; 
 	float m_AngSpeed = 0.f; 
 
+	
 	//HELPER FUNCTIONS
 	//this function fills my m_VecEnemies and updates my EnemyEvasion class
 	void FillEnemyVec(float dt, const vector<EntityInfo>& entitiesFOV);

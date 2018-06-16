@@ -18,7 +18,7 @@ InventoryTracker::~InventoryTracker()
 
 bool InventoryTracker::AddItem(int slotIndex, const ItemInfo & info)
 {
-	if (slotIndex <= 4 && slotIndex >= 0)
+	if (slotIndex <= 4 && slotIndex >= 0 && !m_InventoryArr[slotIndex].hasItem)
 	{
 		m_InventoryArr[slotIndex] = InventorySlot{ info, slotIndex, true };
 		return true;
@@ -43,16 +43,14 @@ bool InventoryTracker::HasItem(int & slotIndex, const eItemType & info)
 {
 	//HasItem goes through the array and checks for a certain item
 	//slotIndex will = the index of this item
-	if (slotIndex <= 4 && slotIndex >= 0)
+	
+	for (size_t i = 0; i < 5; i++)
 	{
-		for (size_t i = 0; i < 5; i++)
+		if (m_InventoryArr[i].item.Type == info && m_InventoryArr[i].hasItem)
 		{
-			if (m_InventoryArr[i].item.Type == info && m_InventoryArr[i].hasItem)
-			{
-				slotIndex = i;
-				return true;
-			}
+			slotIndex = i;
+			return true;
 		}
 	}
-	else return false;
+	return false;
 }
