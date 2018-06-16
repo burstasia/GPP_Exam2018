@@ -46,7 +46,24 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	(pBlackboard,
 		new BehaviorSelector
 		({
+			// CHECKING HEALTH AND ENERGY EVERY FRAME
+			new BehaviorSelector
+			({
+				new BehaviorSequence
+				({
+					new BehaviorConditional(LowHealth),
+					new BehaviorConditional(HasMedkit),
+					new BehaviorAction(UseMedkit)
+				}),
+					new BehaviorSequence
+				({
+					new BehaviorConditional(LowEnergy),
+					new BehaviorConditional(HasFood),
+					new BehaviorAction(EatFood)
+				})
+			}),
 
+			//SEARCHING HOUSE
 			new BehaviorSequence
 				({
 					new BehaviorConditional(InHouse),
@@ -55,7 +72,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 					new BehaviorAction(PushFourCorners),
 					new BehaviorAction(SetTarget)
 				}),
-			
+			//SEARCHING ITEMS IN HOUSE
 			new BehaviorSequence
 				({
 				new BehaviorConditional(InHouse),
@@ -63,6 +80,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 				new BehaviorAction(PushItems),
 				new BehaviorAction(SetTarget)
 				}),
+			//HANDLING THE DIFFERENT TARGETS IF I AM IN A HOUSE
 			new BehaviorSequence
 				({
 				new BehaviorConditional(InHouse),
@@ -71,6 +89,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 				new BehaviorAction(SetTarget)
 
 				}),
+			//IF I AM NOT IN A HOUSE I GO TO CHECKPOINTS
 			new BehaviorSelector
 				({
 				new BehaviorSequence
@@ -88,10 +107,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 		})
 	);
 
-	//m_pBehaviorTree = new BehaviorTree(pBlackboard,
-	//	new BehaviorSelector({
-	//		BehaviorAction(Aim)	
-	//	}));
+
 
 }
 
