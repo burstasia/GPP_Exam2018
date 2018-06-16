@@ -23,7 +23,7 @@ bool LowEnergy(Blackboard* pBlackboard)
 		return false;
 	}
 
-	if (pInterface->Agent_GetInfo().Energy < 5.0f)
+	if (pInterface->Agent_GetInfo().Energy < 2.0f)
 	{
 		return true;
 	}
@@ -102,7 +102,7 @@ bool HasMedkit(Blackboard* pBlackboard)
 	eItemType type = eItemType::MEDKIT;
 	if (pInventoryTracker->HasItem(slot, type))
 	{
-		pInterface->Inventory_GetItem(slot, iInfo);
+		pInterface->Inventory_GetItem(0, iInfo);
 		if (iInfo.Type == eItemType::MEDKIT)
 		{
 			return true;
@@ -387,23 +387,27 @@ BehaviorState UseMedkit(Blackboard *pBlackboard)
 {
 	IExamInterface* pInterface;
 	ItemInfo iInfo{};
+	InventoryTracker * pInventoryTracker{};
 
-	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface);
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface)&&
+		pBlackboard->GetData("InventoryTracker", pInventoryTracker);
 
 	if (!dataAvailiable)
 	{
 		return BehaviorState::Failure;
 	}
+	int index;
 
-	for (UINT i = 0; i < pInterface->Inventory_GetCapacity(); i++)
+	if (pInventoryTracker->HasItem(index, eItemType::MEDKIT))
 	{
-		pInterface->Inventory_GetItem(i, iInfo);
-		if (iInfo.Type == eItemType::MEDKIT)
-		{
-			pInterface->Inventory_UseItem(i);
-			return BehaviorState::Success;
-		}
+		pInterface->Inventory_UseItem(index);
+		pInterface->Inventory_RemoveItem(index);
+		pInventoryTracker->RemoveItem(index);
+		return BehaviorState::Success;
 	}
+
+
+
 	return BehaviorState::Failure;
 }
 

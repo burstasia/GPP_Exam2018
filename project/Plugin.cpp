@@ -95,7 +95,6 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 			//BEHAVIOUR SEQUENCE TO JUST FILL INVENTORY
 			new BehaviorSequence
 				({
-				new BehaviorConditional(StartGame),
 				new BehaviorConditional(InRangeItem),
 				new BehaviorAction(PickUpItem)
 				}),

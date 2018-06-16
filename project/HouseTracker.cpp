@@ -29,9 +29,9 @@ void HouseTracker::AddHouse(const HouseInfo & info)
 	float depthDiv2 = depth / 4.0f;
 
 	if (!found) m_HouseVec.push_back(House{ info, false, {} , {Elite::Vector2{info.Center.x + widthDiv2, info.Center.y + depthDiv2 }
-															,  Elite::Vector2{ info.Center.x - widthDiv2, info.Center.y + depthDiv2 }
+															,   Elite::Vector2{ info.Center.x + widthDiv2, info.Center.y - depthDiv2 }
 															,  Elite::Vector2{ info.Center.x - widthDiv2, info.Center.y - depthDiv2 }
-															,  Elite::Vector2{ info.Center.x + widthDiv2, info.Center.y - depthDiv2 } } });
+															, Elite::Vector2{ info.Center.x - widthDiv2, info.Center.y + depthDiv2 } } });
 }
 
 void HouseTracker::AddItemToHouse(const Item& item, const Elite::Vector2& currHouseCenter)
