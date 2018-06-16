@@ -189,6 +189,7 @@
     <ClInclude Include="Blackboard.h" />
     <ClInclude Include="EnemyEvasion.h" />
     <ClInclude Include="HouseTracker.h" />
+    <ClInclude Include="InventoryTracker.h" />
     <ClInclude Include="ItemTracker.h" />
     <ClInclude Include="PlayerTracker.h" />
     <ClInclude Include="Plugin.h" />
@@ -198,6 +199,7 @@
     <ClCompile Include="BehaviorTree.cpp" />
     <ClCompile Include="EnemyEvasion.cpp" />
     <ClCompile Include="HouseTracker.cpp" />
+    <ClCompile Include="InventoryTracker.cpp" />
     <ClCompile Include="ItemTracker.cpp" />
     <ClCompile Include="PlayerTracker.cpp" />
     <ClCompile Include="Plugin.cpp" />

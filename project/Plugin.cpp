@@ -127,6 +127,7 @@ void Plugin::DllShutdown()
 	SAFE_DELETE(m_pHouseTracker);
 	SAFE_DELETE(m_pBehaviorTree);
 	SAFE_DELETE(m_pPlayerTracker);
+	SAFE_DELETE(m_pInventoryTracker);
 }
 
 //Called only once, during initialization

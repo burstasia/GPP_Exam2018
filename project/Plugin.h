@@ -9,6 +9,7 @@ class ItemTracker;
 class HouseTracker;
 class BehaviorTree;
 class PlayerTracker;
+class InventoryTracker;
 
 class Plugin :public IExamPlugin
 {
@@ -41,6 +42,7 @@ private:
 	HouseTracker* m_pHouseTracker;
 	BehaviorTree* m_pBehaviorTree;
 	PlayerTracker* m_pPlayerTracker;
+	InventoryTracker* m_pInventoryTracker;
 
 	Elite::Vector2 m_Target = {};
 
