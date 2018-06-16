@@ -164,6 +164,26 @@ bool InRangeItem(Blackboard* pBlackboard)
 	return Elite::Distance(pInterface->Agent_GetInfo().Position, itemPos) < pInterface->Agent_GetInfo().GrabRange;
 }
 
+bool NewItemsInFOV(Blackboard* pBlackboard)
+{
+	//This conditional adds the items in the agents FOV to the tracker
+	//then the tracker's SetItemsInFOV returns true if there are new items in the FOV
+	//if not then it returns false
+	ItemTracker * pItemTracker{};
+	vector<EntityInfo> itemsInFOV;
+
+	auto dataAvailiable = pBlackboard->GetData("ItemTracker", pItemTracker) &&
+		pBlackboard->GetData("ItemsInFOV", itemsInFOV);
+
+	if (!dataAvailiable) return false;
+
+	if (pItemTracker->SetItemsInFOV(itemsInFOV))
+	{
+		return true;
+	}
+	else return false;
+}
+
 bool HaveAmmo(Blackboard *pBlackboard)
 {
 	IExamInterface* pInterface;
@@ -264,7 +284,7 @@ bool TargetReached(Blackboard *pBlackboard)
 
 	if (!dataAvailiable) return false;
 
-	if (Elite::Distance(pInterface->Agent_GetInfo().Position, *target) < 5.0f)
+	if (Elite::Distance(pInterface->Agent_GetInfo().Position, *target) < 1.0f)
 	{
 		std::cout << "target reached" << std::endl;
 		return true;
@@ -477,11 +497,6 @@ BehaviorState PushFourCorners(Blackboard *pBlackboard)
 	pTargets->GetDeque().push_front(tempVec.at(2));
 	pTargets->GetDeque().push_front(tempVec.at(3));
 
-	pInterface->Draw_Circle(tempVec.at(0), 2.0f, { 0.0f,1.0f,0.0f });
-	pInterface->Draw_Circle(tempVec.at(1), 2.0f, { 0.0f,1.0f,0.0f });
-	pInterface->Draw_Circle(tempVec.at(2), 2.0f, { 0.0f,1.0f,0.0f });
-	pInterface->Draw_Circle(tempVec.at(3), 2.0f, { 0.0f,1.0f,0.0f });
-
 	return BehaviorState::Success;
 
 }
@@ -490,7 +505,7 @@ BehaviorState SetTarget(Blackboard *pBlackboard)
 {
 	IExamInterface* pInterface;
 	PlayerTracker * pTargets{};
-	Elite::Vector2 *target{};
+	Elite::Vector2 * target{};
 	bool * checkpointSet{};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
@@ -544,6 +559,29 @@ BehaviorState PushCheckpoint(Blackboard *pBlackboard)
 	pTargets->GetDeque().push_front(pInterface->NavMesh_GetClosestPathPoint(checkpointLocation));
 
 	*checkpointSet = true;
+
+	return BehaviorState::Success;
+}
+
+BehaviorState PushItems(Blackboard *pBlackboard)
+{
+	//get item tracker 
+	//get new entities
+	//push them to the deque
+
+	ItemTracker * pItemTracker{};
+	PlayerTracker * pTargets{};
+
+	auto dataAvailiable = pBlackboard->GetData("targetDeque", pTargets) &&
+		pBlackboard->GetData("ItemTracker", pItemTracker);
+
+	if (!dataAvailiable) return BehaviorState::Failure;
+
+	
+	for (auto item : pItemTracker->GetNewEntities())
+	{
+		pTargets->GetDeque().push_front(item.Location);
+	}
 
 	return BehaviorState::Success;
 }

@@ -50,6 +50,50 @@ float ItemTracker::GetClosestDistance(eItemType type, const Elite::Vector2 & cur
 	}
 }
 
+bool ItemTracker::SetItemsInFOV(const vector<EntityInfo>& entities)
+{
+	bool found = false;
+
+	vector<EntityInfo> newEntities;
+
+		for (auto entity : entities)
+		{
+			for (auto item : m_ItemsInFOV)
+			{
+				if (entity.Location == item.Location)
+				{
+					found = true;
+				}
+			}
+			if(!found) newEntities.push_back(entity);
+		}
+	
+		m_NewEntities = newEntities;
+
+		for (auto newEntity : newEntities)
+		{
+			m_ItemsInFOV.push_back(newEntity);
+		}
+
+		if (newEntities.size() > 0)
+		{
+			return true;
+		}
+		else return false;
+}
+
+const vector<EntityInfo>& ItemTracker::GetItemsInFOV()
+{
+	// TODO: insert return statement here
+	return m_ItemsInFOV;
+}
+
+const vector<EntityInfo>& ItemTracker::GetNewEntities()
+{
+	// TODO: insert return statement here
+	return m_NewEntities;
+}
+
 void ItemTracker::AddItemToVec(vector<Item>& vec, eItemType type, const Elite::Vector2 & pos)
 {
 	bool found = false;

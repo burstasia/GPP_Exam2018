@@ -7,6 +7,12 @@ struct Item
 	Elite::Vector2 pos;
 
 };
+
+struct ItemSeen
+{
+	EntityInfo info;
+	bool seen;
+};
 class ItemTracker
 {
 public:
@@ -24,6 +30,10 @@ public:
 	float GetClosestDistance(eItemType type, const Elite::Vector2& currPos);
 	Elite::Vector2 GetClosestPos() { return m_ClosestPos; }
 
+	bool SetItemsInFOV(const vector<EntityInfo>& entities);
+	const vector<EntityInfo>& GetItemsInFOV();
+	const vector<EntityInfo>& GetNewEntities();
+
 private:
 	vector<Item> m_MedkitVec;
 	vector<Item> m_PistolVec;
@@ -31,6 +41,8 @@ private:
 	vector<Item> m_MiscVec;
 
 	Elite::Vector2 m_ClosestPos;
+	vector<EntityInfo> m_ItemsInFOV;
+	vector<EntityInfo> m_NewEntities;
 
 	void AddItemToVec(vector<Item>& vec, eItemType type, const Elite::Vector2& pos);
 	float GetClosest(const vector<Item>& vec, const Elite::Vector2& pos);

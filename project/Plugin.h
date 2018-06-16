@@ -46,6 +46,8 @@ private:
 
 	deque<Elite::Vector2> m_pTargets{};
 
+	vector<EntityInfo> m_ItemsInFOVVec;
+
 	bool m_InHousePrevFrame = false;
 	bool m_CheckPointSet = false;
 

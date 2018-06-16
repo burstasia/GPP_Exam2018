@@ -18,7 +18,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	//Bit information about the plugin
 	//Please fill this in!!
 	info.BotName = "EatSeekSurviveRepeat";
-	info.Student_FirstName = "Nicole";
+	info.Student_FirstName = "Dead";
 	info.Student_LastName = "Munro";
 	info.Student_Class = "2DAE01";
 
@@ -39,12 +39,14 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	pBlackboard->AddData("targetDeque", m_pPlayerTracker);
 	pBlackboard->AddData("target", &m_Target);
 	pBlackboard->AddData("CheckpointSet", &m_CheckPointSet);
-
+	pBlackboard->AddData("ItemTracker", m_pItemTracker);
+	pBlackboard->AddData("ItemsInFOV", m_ItemsInFOVVec);
 
 	m_pBehaviorTree = new BehaviorTree
 	(pBlackboard,
 		new BehaviorSelector
 		({
+
 			new BehaviorSequence
 				({
 					new BehaviorConditional(InHouse),
@@ -53,13 +55,21 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 					new BehaviorAction(PushFourCorners),
 					new BehaviorAction(SetTarget)
 				}),
+			
 			new BehaviorSequence
 				({
-					new BehaviorConditional(InHouse),
-					new BehaviorConditional(TargetReached),
-					new BehaviorAction(Pop),
-					new BehaviorAction(SetTarget)
-					
+				new BehaviorConditional(InHouse),
+				new BehaviorConditional(NewItemsInFOV),
+				new BehaviorAction(PushItems),
+				new BehaviorAction(SetTarget)
+				}),
+			new BehaviorSequence
+				({
+				new BehaviorConditional(InHouse),
+				new BehaviorConditional(TargetReached),
+				new BehaviorAction(Pop),
+				new BehaviorAction(SetTarget)
+
 				}),
 			new BehaviorSelector
 				({
@@ -183,8 +193,8 @@ void Plugin::ProcessEvents(const SDL_Event& e)
 //This function calculates the new SteeringOutput, called once per frame
 SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 {
-	auto vHousesInFOV = GetHousesInFOV();//uses m_pInterface->Fov_GetHouseByIndex(...)
-	auto vEntitiesInFOV = GetEntitiesInFOV(); //uses m_pInterface->Fov_GetEntityByIndex(...)
+	auto vHousesInFOV = GetHousesInFOV();
+	auto vEntitiesInFOV = GetEntitiesInFOV(); 
 
 	FillItemVec(vEntitiesInFOV, vHousesInFOV);
 
@@ -192,12 +202,11 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 
 	auto steering = SteeringPlugin_Output();
 
-	//m_pTargets.push_front({ 0.0f,0.0f });
 
 	pBlackboard->ChangeData("EnemyPos", m_Target);
 	pBlackboard->ChangeData("Interface", m_pInterface);
 	pBlackboard->ChangeData("InHousePrevFrame", m_InHousePrevFrame);
-	//pBlackboard->ChangeData("targetDeque", m_pTargets);
+	pBlackboard->ChangeData("ItemsInFOV", m_ItemsInFOVVec);
 
 	m_pBehaviorTree->Update();
 
@@ -206,8 +215,6 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 
 	steering.AngularVelocity = m_AngSpeed;
 	steering.AutoOrientate = true;
-
-	//steering.LinearVelocity = Elite::Vector2(3.0f, 2.0f);
 
 	m_InHousePrevFrame = m_pInterface->Agent_GetInfo().IsInHouse;
 	return steering;
@@ -281,6 +288,8 @@ void Plugin::FillEnemyVec(float dt, const vector<EntityInfo>& entitiesFOV)
 void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV, const vector<HouseInfo>& housesInFOV)
 {
 	vector<ItemInfo> vItemsInFOV;
+	vector<EntityInfo> vEntityInFOV;
+
 	ItemInfo iInfo = {};
 
 	if(housesInFOV.size() > 0) m_pHouseTracker->AddHouse(housesInFOV.at(0));
@@ -289,7 +298,9 @@ void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV, const vector<Hou
 	{
 		if (entity.Type == eEntityType::ITEM)
 		{
-			//vItemsInFOV.push_back(entity);
+			//m_pItemTracker->SetItemsInFOV(entitiesFOV);
+			
+			vEntityInFOV.push_back(entity);
 			if (Elite::Distance(m_pInterface->Agent_GetInfo().Position, entity.Location) < m_pInterface->Agent_GetInfo().GrabRange)
 			{
 				m_pInterface->Item_Grab(entity, iInfo);
@@ -305,7 +316,7 @@ void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV, const vector<Hou
 		}
 	}
 
-	
+	m_ItemsInFOVVec = vEntityInFOV;
 	//m_VecEnemies = m_pEnemyEvasion->GetEnemyVec();
 }
 
