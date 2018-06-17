@@ -235,30 +235,6 @@ bool HaveAmmo(Blackboard *pBlackboard)
 	return false;
 }
 
-bool CloseItem(Blackboard * pBlackboard)
-{
-	IExamInterface* pInterface;
-	ItemInfo iInfo{};
-	ItemTracker* pItemTracker{};
-
-	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
-		pBlackboard->GetData("ItemTracker", pItemTracker) && 
-		pBlackboard->GetData("ItemToTrack", iInfo);
-
-	if (!dataAvailiable)
-	{
-		return false;
-	}
-
-	//TODO: change max distance to variable the plugin sets 
-
-	if (pItemTracker->GetClosestDistance(iInfo.Type, pInterface->Agent_GetInfo().Position) > 10.0f)
-	{
-		return false;
-	}
-	else return true;
-}
-
 bool InMiddleHouse(Blackboard * pBlackboard)
 {
 	HouseTracker houseTracker;
@@ -389,6 +365,72 @@ bool IsNotInHouse(Blackboard *pBlackboard)
 	else return true;
 	return false;
 }
+
+bool Looking(Blackboard *pBlackboard)
+{
+	//possibly could use this instead of one for each state of what I'm looking for
+	bool *looking{};
+
+	auto dataAvailiable = pBlackboard->GetData("Looking", looking);
+
+	if (!dataAvailiable) return false;
+
+	return *looking;
+}
+
+bool NotLooking(Blackboard *pBlackboard)
+{
+	bool *looking{};
+
+	auto dataAvailiable = pBlackboard->GetData("Looking", looking);
+
+	if (!dataAvailiable) return false;
+
+	return !*looking;
+}
+
+bool NeedFood(Blackboard *pBlackboard)
+{
+	//check food meter
+	//check if i have food
+	eItemType *typeLookingFor{};
+
+	auto dataAvailiable = pBlackboard->GetData("TypeLookingFor", typeLookingFor);
+
+	if (!dataAvailiable) return false;
+
+	if (LowEnergy(pBlackboard) && !HasFood(pBlackboard))
+	{
+		*typeLookingFor = eItemType::FOOD;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool NeedMedkit(Blackboard *pBlackboard)
+{
+	//check food meter
+	//check if i have food
+	eItemType *typeLookingFor{};
+
+	auto dataAvailiable = pBlackboard->GetData("TypeLookingFor", typeLookingFor);
+
+	if (!dataAvailiable) return false;
+
+	if (LowHealth(pBlackboard) && !HasMedkit(pBlackboard))
+	{
+		*typeLookingFor = eItemType::MEDKIT;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 //actions
 BehaviorState EatFood(Blackboard *pBlackboard)
 {
@@ -812,5 +854,38 @@ BehaviorState ClearItemsFOV(Blackboard *pBlackboard)
 
 BehaviorState PushClosestItem(Blackboard *pBlackboard)
 {
+	//get item type I'm looking for
+	IExamInterface * pInterface{};
+	eItemType *typeLookingFor{};
+	ItemTracker *pItemTracker{};
+	PlayerTracker * pTargets{};
 
+	auto dataAvailiable = pBlackboard->GetData("TypeLookingFor", typeLookingFor)&&
+		pBlackboard->GetData("ItemTracker", pItemTracker)&&
+		pBlackboard->GetData("targetDeque", pTargets) &&
+		pBlackboard->GetData("Interface", pInterface);
+
+	if (!dataAvailiable) return BehaviorState::Failure;
+
+	pTargets->GetDeque().push_front(pItemTracker->GetClosestDistance(*typeLookingFor, pInterface->Agent_GetInfo().Position));
+
+	return BehaviorState::Success;
+}
+
+BehaviorState PopItem(Blackboard *pBlackboard)
+{
+	//pop from deque
+	//set looking to false
+	PlayerTracker * pTargets{};
+	bool * looking{};
+
+	auto dataAvailiable = pBlackboard->GetData("targetDeque", pTargets) &&
+		pBlackboard->GetData("Looking", looking);
+
+	if (!dataAvailiable) return BehaviorState::Failure;
+
+	pTargets->GetDeque().pop_front();
+	*looking = false;
+
+	return BehaviorState::Success;
 }

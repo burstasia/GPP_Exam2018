@@ -45,6 +45,8 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	pBlackboard->AddData("InventoryTracker", m_pInventoryTracker);
 	pBlackboard->AddData("ItemInRange", &m_ItemInRange);
 	pBlackboard->AddData("ItemGrabbedPrevFrame", &m_ItemGrabbedPrevFrame);
+	pBlackboard->AddData("Looking", &m_Looking);
+	pBlackboard->AddData("TypeLookingFor", &m_TypeLookingFor);
 
 	m_pBehaviorTree = new BehaviorTree
 	(pBlackboard,
@@ -59,7 +61,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 					new BehaviorConditional(HasMedkit),
 					new BehaviorAction(UseMedkit)
 				}),
-					new BehaviorSequence
+				new BehaviorSequence
 				({
 					new BehaviorConditional(LowEnergy),
 					new BehaviorConditional(HasFood),
@@ -67,68 +69,106 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 				})
 			}),
 
-			//SEARCHING HOUSE
 			new BehaviorSequence
-				({
-					new BehaviorConditional(InHouse),
-					new BehaviorConditional(WasNotInHousePrevFrame),
-					new BehaviorAction(Pop),
-					new BehaviorAction(PushFourCorners),
-					new BehaviorAction(SetTarget)
-				}),
-			//SEARCHING ITEMS IN HOUSE
-			new BehaviorSequence
-				({
+			({
 				new BehaviorConditional(InHouse),
-				new BehaviorConditional(NewItemsInFOV),
-				new BehaviorAction(PushItems),
-				new BehaviorAction(SetTarget)
-				}),
-			//BEHAVIOUR SEQUENCE TO JUST FILL INVENTORY
-			new BehaviorSequence
+				new BehaviorConditional(NotLooking),
+				new BehaviorSelector
 				({
-				new BehaviorConditional(InHouse),
-				new BehaviorConditional(InRangeItem),
-				new BehaviorAction(GrabItem),
-				new BehaviorAction(PickUpItem)
-				}),
-			//HANDLING THE DIFFERENT TARGETS IF I AM IN A HOUSE
-			new BehaviorSequence
-				({
-				new BehaviorConditional(InHouse),
-				new BehaviorConditional(TargetReached),
-				new BehaviorAction(Pop),
-				new BehaviorAction(SetTarget)
+					//SEARCHING HOUSE
+					new BehaviorSequence
+					({
+						new BehaviorConditional(WasNotInHousePrevFrame),
+						new BehaviorAction(Pop),
+						new BehaviorAction(PushFourCorners),
+						new BehaviorAction(SetTarget)
+					}),
+					//SEARCHING ITEMS IN HOUSE
+					new BehaviorSequence
+					({
+						new BehaviorConditional(NewItemsInFOV),
+						new BehaviorAction(PushItems),
+						new BehaviorAction(SetTarget)
+					}),
+					//BEHAVIOUR SEQUENCE TO JUST FILL INVENTORY
+					new BehaviorSequence
+					({
+						new BehaviorConditional(InRangeItem),
+						new BehaviorAction(GrabItem),
+						new BehaviorAction(PickUpItem)
+					}),
+					//HANDLING THE DIFFERENT TARGETS IF I AM IN A HOUSE
+					new BehaviorSequence
+					({
+						new BehaviorConditional(TargetReached),
+						new BehaviorAction(Pop),
+						new BehaviorAction(SetTarget)
 
+					}),
+					
+				})
+				
+			}),
+			new BehaviorSequence
+			({
+				new BehaviorSelector
+				({
+					new BehaviorSelector
+					({
+						new BehaviorConditional(Looking),
+						new BehaviorSequence
+						({
+							new BehaviorConditional(NeedFood),
+							new BehaviorAction(PushClosestItem),
+							new BehaviorAction(SetTarget)
+						})
+					}),
+					new BehaviorSelector
+					({
+						new BehaviorConditional(Looking),
+						new BehaviorSequence
+						({
+							new BehaviorConditional(NeedMedkit),
+							new BehaviorAction(PushClosestItem),
+							new BehaviorAction(SetTarget)
+						})
+					})
 				}),
-			
+				new BehaviorSequence
+				({
+					new BehaviorConditional(TargetReached),
+					new BehaviorConditional(InRangeItem),
+					new BehaviorAction(GrabItem),
+					new BehaviorAction(PickUpItem),
+					new BehaviorAction(PopItem)
+				})
+			}),
 			//IF I AM NOT IN A HOUSE I GO TO CHECKPOINTS
 			new BehaviorSelector
 				({
-				new BehaviorSequence
+					new BehaviorSelector
 					({
-						new BehaviorConditional(WasInHousePrevFrame),
-						new BehaviorConditional(IsNotInHouse),
-						new BehaviorAction(ClearItemsFOV)
+						new BehaviorSequence
+						({
+							new BehaviorConditional(WasInHousePrevFrame),
+							new BehaviorConditional(IsNotInHouse),
+							new BehaviorAction(ClearItemsFOV)
+						}),
+						
+						new BehaviorSequence
+						({
+							new BehaviorConditional(IsCheckpointNotSet),
+							new BehaviorAction(PushCheckpoint),
+							new BehaviorAction(SetTarget),
+						}),	
 					}),
-				new BehaviorSequence
-					({
-						new BehaviorConditional(IsNotInHouse),
-						new BehaviorConditional(LowHealth),
-
-					})
-				new BehaviorSequence
-					({
-						new BehaviorConditional(IsCheckpointNotSet),
-						new BehaviorAction(PushCheckpoint),
-						new BehaviorAction(SetTarget),
-					}),
-				new BehaviorSequence
+					new BehaviorSequence
 					({
 						new BehaviorConditional(TargetReached),
 						new BehaviorAction(PopCheckpoint)
 					})
-				})
+				}),
+			
 		})
 	);
 

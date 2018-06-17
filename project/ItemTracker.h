@@ -27,7 +27,7 @@ public:
 
 	vector<Item>& GetFoodVec() { return m_FoodVec; }
 
-	float GetClosestDistance(eItemType type, const Elite::Vector2& currPos);
+	Elite::Vector2 GetClosestDistance(eItemType type, const Elite::Vector2& currPos);
 	Elite::Vector2 GetClosestPos() { return m_ClosestPos; }
 
 	bool SetItemsInFOV(const vector<EntityInfo>& entities);
@@ -50,7 +50,7 @@ private:
 	vector<EntityInfo> m_NewEntities;
 
 	void AddItemToVec(vector<Item>& vec, eItemType type, const Elite::Vector2& pos);
-	float GetClosest(const vector<Item>& vec, const Elite::Vector2& pos);
+	Elite::Vector2 GetClosest(const vector<Item>& vec, const Elite::Vector2& pos);
 	void RemoveItemVec(vector<Item>& vec, const Elite::Vector2& pos, eItemType type);
 };
 

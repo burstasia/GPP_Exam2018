@@ -60,6 +60,8 @@ private:
 
 	bool m_InHousePrevFrame = false;
 	bool m_CheckPointSet = false;
+	bool m_Looking = false;
+	eItemType m_TypeLookingFor;
 
 	bool m_CanRun = false; 
 	bool m_GrabItem = false; 
