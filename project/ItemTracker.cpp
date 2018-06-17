@@ -14,6 +14,8 @@ ItemTracker::~ItemTracker()
 
 void ItemTracker::AddItem(eItemType type, Elite::Vector2 pos)
 {
+	AddItemToVec(m_AllItems, type, pos);
+
 	switch (type)
 	{
 	case eItemType::PISTOL:
@@ -94,6 +96,21 @@ const vector<EntityInfo>& ItemTracker::GetNewEntities()
 	return m_NewEntities;
 }
 
+float ItemTracker::GetClosestDistance(const Elite::Vector2 & pos)
+{
+	float max = Elite::Distance(m_AllItems.at(0).pos, pos);
+
+	for (auto item : m_AllItems)
+	{
+		if (Elite::Distance(item.pos, pos) < max)
+		{
+			max = Elite::Distance(item.pos, pos);
+		}
+	}
+
+	return max;
+}
+
 void ItemTracker::AddItemToVec(vector<Item>& vec, eItemType type, const Elite::Vector2 & pos)
 {
 	bool found = false;
@@ -111,6 +128,7 @@ void ItemTracker::AddItemToVec(vector<Item>& vec, eItemType type, const Elite::V
 
 float ItemTracker::GetClosest(const vector<Item>& vec, const Elite::Vector2 & pos)
 {
+	//helper function to get the closest item in a certain vector
 	bool found = false;
 	Item item{};
 	float max = Elite::Distance(vec.at(0).pos, pos);

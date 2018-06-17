@@ -11,6 +11,11 @@ class BehaviorTree;
 class PlayerTracker;
 class InventoryTracker;
 
+struct ItemGrabbed
+{
+	Elite::Vector2 pos;
+	bool grabbed;
+};
 class Plugin :public IExamPlugin
 {
 public:
@@ -51,6 +56,7 @@ private:
 	vector<EntityInfo> m_ItemsInFOVVec;
 
 	ItemInfo m_ItemInRange;
+	ItemGrabbed m_ItemGrabbedPrevFrame;
 
 	bool m_InHousePrevFrame = false;
 	bool m_CheckPointSet = false;

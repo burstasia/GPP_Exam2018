@@ -43,7 +43,8 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	pBlackboard->AddData("ItemTracker", m_pItemTracker);
 	pBlackboard->AddData("ItemsInFOV", m_ItemsInFOVVec);
 	pBlackboard->AddData("InventoryTracker", m_pInventoryTracker);
-	pBlackboard->AddData("ItemInRange", m_ItemInRange);
+	pBlackboard->AddData("ItemInRange", &m_ItemInRange);
+	pBlackboard->AddData("ItemGrabbedPrevFrame", &m_ItemGrabbedPrevFrame);
 
 	m_pBehaviorTree = new BehaviorTree
 	(pBlackboard,
@@ -83,6 +84,14 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 				new BehaviorAction(PushItems),
 				new BehaviorAction(SetTarget)
 				}),
+			//BEHAVIOUR SEQUENCE TO JUST FILL INVENTORY
+			new BehaviorSequence
+				({
+				new BehaviorConditional(InHouse),
+				new BehaviorConditional(InRangeItem),
+				new BehaviorAction(GrabItem),
+				new BehaviorAction(PickUpItem)
+				}),
 			//HANDLING THE DIFFERENT TARGETS IF I AM IN A HOUSE
 			new BehaviorSequence
 				({
@@ -92,12 +101,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 				new BehaviorAction(SetTarget)
 
 				}),
-			//BEHAVIOUR SEQUENCE TO JUST FILL INVENTORY
-			new BehaviorSequence
-				({
-				new BehaviorConditional(InRangeItem),
-				new BehaviorAction(PickUpItem)
-				}),
+			
 			//IF I AM NOT IN A HOUSE I GO TO CHECKPOINTS
 			new BehaviorSelector
 				({
@@ -233,7 +237,7 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 	pBlackboard->ChangeData("Interface", m_pInterface);
 	pBlackboard->ChangeData("InHousePrevFrame", m_InHousePrevFrame);
 	pBlackboard->ChangeData("ItemsInFOV", m_ItemsInFOVVec);
-	pBlackboard->ChangeData("ItemInRange", m_ItemInRange);
+	pBlackboard->ChangeData("ItemInRange", &m_ItemInRange);
 	pBlackboard->ChangeData("InventoryTracker", m_pInventoryTracker);
 
 	m_pBehaviorTree->Update();
@@ -329,20 +333,21 @@ void Plugin::FillItemVec(const vector<EntityInfo>& entitiesFOV, const vector<Hou
 			//m_pItemTracker->SetItemsInFOV(entitiesFOV);
 			
 			vEntityInFOV.push_back(entity);
-			if (Elite::Distance(m_pInterface->Agent_GetInfo().Position, entity.Location) < m_pInterface->Agent_GetInfo().GrabRange)
-			{
-				m_pInterface->Item_Grab(entity, iInfo);
-				vItemsInFOV.push_back(iInfo);
+			//if (Elite::Distance(m_pInterface->Agent_GetInfo().Position, entity.Location) < m_pInterface->Agent_GetInfo().GrabRange)
+			//{
+			//	m_pInterface->Item_Grab(entity, iInfo);
+			//	vItemsInFOV.push_back(iInfo);
 
-				m_pItemTracker->AddItem(iInfo.Type, iInfo.Location);
-				m_ItemInRange = iInfo;
-				if (m_pInterface->Agent_GetInfo().IsInHouse)
-				{
-					m_pHouseTracker->AddItemToHouse({ iInfo.Type, iInfo.Location }, housesInFOV.at(0).Center);
-				}
-			}	
+			//	m_pItemTracker->AddItem(iInfo.Type, iInfo.Location);
+			//	//m_ItemInRange = iInfo;
+			//	if (m_pInterface->Agent_GetInfo().IsInHouse)
+			//	{
+			//		m_pHouseTracker->AddItemToHouse({ iInfo.Type, iInfo.Location }, housesInFOV.at(0).Center);
+			//	}
+			//}	
 		}
 	}
+
 
 	m_ItemsInFOVVec = vEntityInFOV;
 	//m_VecEnemies = m_pEnemyEvasion->GetEnemyVec();

@@ -34,11 +34,13 @@ public:
 	const vector<EntityInfo>& GetItemsInFOV();
 	const vector<EntityInfo>& GetNewEntities();
 
+	float GetClosestDistance(const Elite::Vector2& pos);
 private:
 	vector<Item> m_MedkitVec;
 	vector<Item> m_PistolVec;
 	vector<Item> m_FoodVec;
 	vector<Item> m_MiscVec;
+	vector<Item> m_AllItems;
 
 	Elite::Vector2 m_ClosestPos;
 	vector<EntityInfo> m_ItemsInFOV;

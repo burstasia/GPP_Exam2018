@@ -71,7 +71,7 @@ bool HasFood(Blackboard* pBlackboard)
 	eItemType type = eItemType::FOOD;
 	if (pInventoryTracker->HasItem(slot, type))
 	{
-		pInterface->Inventory_GetItem(slot, iInfo);
+		pInterface->Inventory_GetItem(slot + 1, iInfo);
 		if (iInfo.Type == eItemType::FOOD)
 		{
 			return true;
@@ -102,11 +102,7 @@ bool HasMedkit(Blackboard* pBlackboard)
 	eItemType type = eItemType::MEDKIT;
 	if (pInventoryTracker->HasItem(slot, type))
 	{
-		pInterface->Inventory_GetItem(0, iInfo);
-		if (iInfo.Type == eItemType::MEDKIT)
-		{
-			return true;
-		}
+		return true;
 	}
 	else return false;
 
@@ -165,23 +161,58 @@ bool HasGun(Blackboard* pBlackboard)
 bool InRangeItem(Blackboard* pBlackboard)
 {
 	IExamInterface* pInterface;
-	ItemInfo itemInRange;
-	Elite::Vector2 itemPos{};
+	ItemInfo * itemInRange{};
+	//ItemInfo 
+	Elite::Vector2* target = {};
+	vector<EntityInfo> m_ItemsInFOVVec;
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("ItemsInFOV", m_ItemsInFOVVec) &&
+		pBlackboard->GetData("target", target) &&
 		pBlackboard->GetData("ItemInRange", itemInRange);
 
-	if (Elite::Distance({0.0f, 0.0f}, itemInRange.Location) < 0.01f)
-	{
-		return false;
-	}
+	
 	if (!dataAvailiable)
 	{
 		return false;
 	}
 
+	for (auto item : m_ItemsInFOVVec)
+	{
+		if (Elite::Distance(item.Location, *target) < 0.1f)
+		{
+			if (Elite::Distance(pInterface->Agent_GetInfo().Position, item.Location) < (pInterface->Agent_GetInfo().GrabRange - 0.5f))
+			{
+				return true;
+			}
+			
+		}
+	}
+
 	
-	return Elite::Distance(pInterface->Agent_GetInfo().Position, itemInRange.Location) < pInterface->Agent_GetInfo().GrabRange;
+	//if item in range
+	//if (Elite::Distance(pInterface->Agent_GetInfo().Position, *target) < (pInterface->Agent_GetInfo().GrabRange - 0.5f))
+	//{
+	//	//get items in FOV
+	//	//compare positions to target
+	//	//grab
+	//	//set ItemInRange to that
+	//	//set bool of picking up item to true
+	//	//return true
+	//	for (auto &entity : m_ItemsInFOVVec)
+	//	{
+	//		if (entity.Location == *target)
+	//		{
+	//			pInterface->Item_Grab(entity, *itemInRange);
+	//			return true;
+	//		}
+	//		
+	//	}
+	//	
+	//}
+
+
+	return false;
 }
 
 bool NewItemsInFOV(Blackboard* pBlackboard)
@@ -306,7 +337,7 @@ bool TargetReached(Blackboard *pBlackboard)
 
 	if (Elite::Distance(pInterface->Agent_GetInfo().Position, *target) < 1.0f)
 	{
-		std::cout << "target reached" << std::endl;
+		//std::cout << "target reached" << std::endl;
 		return true;
 	}
 	else return false;
@@ -574,9 +605,12 @@ BehaviorState SetTarget(Blackboard *pBlackboard)
 			*target = pInterface->NavMesh_GetClosestPathPoint(checkpointLocation);
 			*checkpointSet = true;
 
+			pBlackboard->ChangeData("target", target);
+
 			return BehaviorState::Success;
 		}
 		*target = pTargets->GetDeque().at(0);
+		pBlackboard->ChangeData("target", target);
 		//std::cout << target->x  << " : x" << "\n" << target->y << " : y" << std::endl;
 		return BehaviorState::Success;
 	}
@@ -630,10 +664,68 @@ BehaviorState PushItems(Blackboard *pBlackboard)
 	return BehaviorState::Success;
 }
 
+BehaviorState GrabItem(Blackboard *pBlackboard)
+{
+	IExamInterface* pInterface;
+	ItemInfo *itemInRange{};
+	Elite::Vector2* target {};
+	ItemGrabbed* prevFrameItem{};
+
+	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
+		pBlackboard->GetData("target", target)&&
+		pBlackboard->GetData("ItemGrabbedPrevFrame", prevFrameItem) &&
+		pBlackboard->GetData("ItemInRange", itemInRange);
+
+	vector<EntityInfo> vEntitiesInFOV = {};
+
+	EntityInfo ei = {};
+	for (int i = 0;; ++i)
+	{
+		if (pInterface->Fov_GetEntityByIndex(i, ei))
+		{
+			vEntitiesInFOV.push_back(ei);
+			continue;
+		}
+
+		break;
+	}
+
+	if (Elite::Distance(pInterface->Agent_GetInfo().Position, *target) < (pInterface->Agent_GetInfo().GrabRange - 0.5f))
+	{
+		for (auto item : vEntitiesInFOV)
+		{
+			if (item.Type == eEntityType::ITEM)
+			{
+				if (Elite::Distance(item.Location, *target) < 0.1f)
+				{
+					if (prevFrameItem->pos != item.Location)
+					{
+						if (pInterface->Item_Grab(item, *itemInRange))
+						{
+							*prevFrameItem = ItemGrabbed{ item.Location, true };
+
+							//pBlackboard->ChangeData("ItemInRange", itemInRange); //will this change ItemInRange in the plugin too?
+							//pBlackboard->ChangeData("ItemGrabbedPrevFrame", prevFrameItem);
+							return BehaviorState::Success;
+						}
+						else
+						{
+							return BehaviorState::Failure;
+						}
+					}
+					
+				}
+			}
+			
+		}
+	}
+	return BehaviorState::Failure;
+}
+
 BehaviorState PickUpItem(Blackboard *pBlackboard)
 {
 	IExamInterface* pInterface;
-	ItemInfo itemInRange{};
+	ItemInfo * itemInRange{};
 	InventoryTracker * pInventoryTracker{};
 
 	auto dataAvailiable = pBlackboard->GetData("Interface", pInterface) &&
@@ -642,26 +734,62 @@ BehaviorState PickUpItem(Blackboard *pBlackboard)
 
 	if (!dataAvailiable) return BehaviorState::Failure;
 
-	if (itemInRange.Type == eItemType::FOOD)
+	if (itemInRange->Type == eItemType::FOOD)
 	{
-		if (pInventoryTracker->AddItem(0, itemInRange))
+		
+		if (pInventoryTracker->AddItem(0, *itemInRange))
 		{
-			pInterface->Inventory_AddItem(0, itemInRange);
+			if (pInterface->Inventory_AddItem(0, *itemInRange))
+			{
+				return BehaviorState::Success;
+			}	
 		}
+		if (pInventoryTracker->AddItem(3, *itemInRange))
+		{
+			if (pInterface->Inventory_AddItem(3, *itemInRange))
+			{
+				return BehaviorState::Success;
+			}
+		}
+		if (pInventoryTracker->AddItem(4, *itemInRange))
+		{
+			if (pInterface->Inventory_AddItem(4, *itemInRange))
+			{
+				return BehaviorState::Success;
+			}
+		}
+	/*	if (pInterface->Inventory_AddItem(3, *itemInRange))
+		{
+			if (pInventoryTracker->AddItem(3, *itemInRange))
+			{
+				return BehaviorState::Success;
+			}
+		}
+		if (pInterface->Inventory_AddItem(4, *itemInRange))
+		{
+			if (pInventoryTracker->AddItem(4, *itemInRange))
+			{
+				return BehaviorState::Success;
+			}
+		}*/
+	
+		
 		
 	}
-	else if (itemInRange.Type == eItemType::PISTOL)
+	else if (itemInRange->Type == eItemType::PISTOL)
 	{
-		if (pInventoryTracker->AddItem(1, itemInRange))
+		if (pInventoryTracker->AddItem(1, *itemInRange))
 		{
-			pInterface->Inventory_AddItem(1, itemInRange);
+			pInterface->Inventory_AddItem(1, *itemInRange);
+			return BehaviorState::Success;
 		}
 	}
-	else if (itemInRange.Type == eItemType::MEDKIT)
+	else if (itemInRange->Type == eItemType::MEDKIT)
 	{
-		if (pInventoryTracker->AddItem(2, itemInRange))
+		if (pInventoryTracker->AddItem(2, *itemInRange))
 		{
-			pInterface->Inventory_AddItem(2, itemInRange);
+			pInterface->Inventory_AddItem(2, *itemInRange);
+			return BehaviorState::Success;
 		}
 	}
 
