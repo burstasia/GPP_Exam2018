@@ -867,7 +867,11 @@ BehaviorState PushClosestItem(Blackboard *pBlackboard)
 
 	if (!dataAvailiable) return BehaviorState::Failure;
 
-	pTargets->GetDeque().push_front(pItemTracker->GetClosestDistance(*typeLookingFor, pInterface->Agent_GetInfo().Position));
+	if (pItemTracker->GetClosestDistance(*typeLookingFor, pInterface->Agent_GetInfo().Position) != Elite::Vector2{ 0.0f,0.0f })
+	{
+		pTargets->GetDeque().push_front(pItemTracker->GetClosestDistance(*typeLookingFor, pInterface->Agent_GetInfo().Position));
+	}
+	
 
 	return BehaviorState::Success;
 }

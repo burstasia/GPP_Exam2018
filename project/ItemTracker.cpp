@@ -159,8 +159,14 @@ Elite::Vector2 ItemTracker::GetClosest(const vector<Item>& vec, const Elite::Vec
 	//helper function to get the closest item in a certain vector
 	bool found = false;
 	Item item{};
-	float max = Elite::Distance(vec.at(0).pos, pos);
-	Elite::Vector2 posClosest = vec.at(0).pos;
+	float max{};
+	Elite::Vector2 posClosest{};
+
+	if (vec.size() > 0)
+	{
+		float max = Elite::Distance(vec.at(0).pos, pos);
+		Elite::Vector2 posClosest = vec.at(0).pos;
+	}
 
 	for (auto itemVec : vec)
 	{

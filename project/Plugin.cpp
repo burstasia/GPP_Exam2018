@@ -143,32 +143,31 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 					new BehaviorAction(PopItem)
 				})
 			}),
-			//IF I AM NOT IN A HOUSE I GO TO CHECKPOINTS
-			new BehaviorSelector
-				({
-					new BehaviorSelector
-					({
-						new BehaviorSequence
-						({
-							new BehaviorConditional(WasInHousePrevFrame),
-							new BehaviorConditional(IsNotInHouse),
-							new BehaviorAction(ClearItemsFOV)
-						}),
-						
-						new BehaviorSequence
-						({
-							new BehaviorConditional(IsCheckpointNotSet),
-							new BehaviorAction(PushCheckpoint),
-							new BehaviorAction(SetTarget),
-						}),	
-					}),
-					new BehaviorSequence
-					({
-						new BehaviorConditional(TargetReached),
-						new BehaviorAction(PopCheckpoint)
-					})
-				}),
 			
+			new BehaviorSequence
+			({
+				new BehaviorConditional(WasInHousePrevFrame),
+				new BehaviorConditional(IsNotInHouse),
+				new BehaviorAction(ClearItemsFOV)
+			}),
+
+			new BehaviorSelector
+			({
+				new BehaviorSequence
+				({
+					new BehaviorConditional(IsCheckpointNotSet),
+					new BehaviorAction(PushCheckpoint),
+					new BehaviorAction(SetTarget),
+				}),
+
+				new BehaviorSequence
+				({
+					new BehaviorConditional(TargetReached),
+					new BehaviorAction(PopCheckpoint),
+					new BehaviorAction(SetTarget)
+				})
+			})
+			//IF I AM NOT IN A HOUSE I GO TO CHECKPOINTS
 		})
 	);
 
@@ -201,7 +200,7 @@ void Plugin::InitGameDebugParams(GameDebugParams& params)
 	params.AutoFollowCam = true; //Automatically follow the AI? (Default = true)
 	params.RenderUI = true; //Render the IMGUI Panel? (Default = true)
 	params.SpawnEnemies = true; //Do you want to spawn enemies? (Default = true)
-	params.EnemyCount = 0; //How many enemies? (Default = 20)
+	params.EnemyCount = 20; //How many enemies? (Default = 20)
 	params.GodMode = false; //GodMode > You can't die, can be usefull to inspect certain behaviours (Default = false)
 							//params.LevelFile = "LevelTwo.gppl";
 	params.AutoGrabClosestItem = true; //A call to Item_Grab(...) returns the closest item that can be grabbed. (EntityInfo argument is ignored)
