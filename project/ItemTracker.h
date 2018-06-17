@@ -33,6 +33,7 @@ public:
 	bool SetItemsInFOV(const vector<EntityInfo>& entities);
 	const vector<EntityInfo>& GetItemsInFOV();
 	const vector<EntityInfo>& GetNewEntities();
+	void RemoveItemsFOV();
 
 	float GetClosestDistance(const Elite::Vector2& pos);
 private:

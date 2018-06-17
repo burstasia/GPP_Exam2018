@@ -19,7 +19,6 @@ public:
 	bool HasItem(int& slotIndex, const eItemType& info);
 
 private:
-	vector<InventorySlot> m_Inventory;
 	InventorySlot m_InventoryArr[5];
 };
 

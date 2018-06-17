@@ -71,11 +71,7 @@ bool HasFood(Blackboard* pBlackboard)
 	eItemType type = eItemType::FOOD;
 	if (pInventoryTracker->HasItem(slot, type))
 	{
-		pInterface->Inventory_GetItem(slot + 1, iInfo);
-		if (iInfo.Type == eItemType::FOOD)
-		{
-			return true;
-		}
+		return true;
 	}
 	else return false;
 
@@ -400,17 +396,16 @@ BehaviorState EatFood(Blackboard *pBlackboard)
 		return BehaviorState::Failure;
 	}
 
-	for (UINT i = 0; i < pInterface->Inventory_GetCapacity(); i++)
+	int index;
+
+	if (pInventoryTracker->HasItem(index, eItemType::FOOD))
 	{
-		pInterface->Inventory_GetItem(i, iInfo);
-		if (iInfo.Type == eItemType::FOOD)
-		{
-			pInterface->Inventory_UseItem(i);
-			pInterface->Inventory_RemoveItem(i);
-			pInventoryTracker->RemoveItem(i);
-			return BehaviorState::Success;
-		}
+		pInterface->Inventory_UseItem(index);
+		pInterface->Inventory_RemoveItem(index);
+		pInventoryTracker->RemoveItem(index);
+		return BehaviorState::Success;
 	}
+
 	return BehaviorState::Failure;
 }
 
@@ -750,31 +745,7 @@ BehaviorState PickUpItem(Blackboard *pBlackboard)
 			{
 				return BehaviorState::Success;
 			}
-		}
-		if (pInventoryTracker->AddItem(4, *itemInRange))
-		{
-			if (pInterface->Inventory_AddItem(4, *itemInRange))
-			{
-				return BehaviorState::Success;
-			}
-		}
-	/*	if (pInterface->Inventory_AddItem(3, *itemInRange))
-		{
-			if (pInventoryTracker->AddItem(3, *itemInRange))
-			{
-				return BehaviorState::Success;
-			}
-		}
-		if (pInterface->Inventory_AddItem(4, *itemInRange))
-		{
-			if (pInventoryTracker->AddItem(4, *itemInRange))
-			{
-				return BehaviorState::Success;
-			}
-		}*/
-	
-		
-		
+		}	
 	}
 	else if (itemInRange->Type == eItemType::PISTOL)
 	{
@@ -792,6 +763,15 @@ BehaviorState PickUpItem(Blackboard *pBlackboard)
 			return BehaviorState::Success;
 		}
 	}
-
+	else if (itemInRange->Type == eItemType::GARBAGE)
+	{
+		if (pInventoryTracker->AddItem(4, *itemInRange))
+		{
+			pInterface->Inventory_AddItem(4, *itemInRange);
+			pInventoryTracker->RemoveItem(4);
+			pInterface->Inventory_RemoveItem(4);
+			return BehaviorState::Success;
+		}
+	}
 	return BehaviorState::Failure;
 }

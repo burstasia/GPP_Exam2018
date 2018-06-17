@@ -18,7 +18,7 @@ InventoryTracker::~InventoryTracker()
 
 bool InventoryTracker::AddItem(int slotIndex, const ItemInfo & info)
 {
-	if (slotIndex <= 4 && slotIndex >= 0 && !m_InventoryArr[slotIndex].hasItem)
+	if (slotIndex <= 4 && slotIndex >= 0 && m_InventoryArr[slotIndex].hasItem == false)
 	{
 		m_InventoryArr[slotIndex] = InventorySlot{ info, slotIndex, true };
 		return true;

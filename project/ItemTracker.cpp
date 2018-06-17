@@ -96,6 +96,12 @@ const vector<EntityInfo>& ItemTracker::GetNewEntities()
 	return m_NewEntities;
 }
 
+void ItemTracker::RemoveItemsFOV()
+{
+	if (m_ItemsInFOV.size() > 0)
+		m_ItemsInFOV.clear();
+}
+
 float ItemTracker::GetClosestDistance(const Elite::Vector2 & pos)
 {
 	float max = Elite::Distance(m_AllItems.at(0).pos, pos);
