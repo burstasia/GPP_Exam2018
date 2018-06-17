@@ -58,30 +58,31 @@ bool ItemTracker::SetItemsInFOV(const vector<EntityInfo>& entities)
 
 	vector<EntityInfo> newEntities;
 
-		for (auto entity : entities)
+	for (auto entity : entities)
+	{
+		for (auto item : m_ItemsInFOV)
 		{
-			for (auto item : m_ItemsInFOV)
+			if (entity.Location == item.Location)
 			{
-				if (entity.Location == item.Location)
-				{
-					found = true;
-				}
+				found = true;
 			}
-			if(!found) newEntities.push_back(entity);
 		}
+		if(!found) newEntities.push_back(entity);
+	}
 	
-		m_NewEntities = newEntities;
+	m_NewEntities = newEntities;
 
-		for (auto newEntity : newEntities)
-		{
-			m_ItemsInFOV.push_back(newEntity);
-		}
+	for (auto newEntity : newEntities)
+	{
+		m_ItemsInFOV.push_back(newEntity);
+	}
 
-		if (newEntities.size() > 0)
-		{
-			return true;
-		}
-		else return false;
+
+	if (newEntities.size() > 0)
+	{
+		return true;
+	}
+	else return false;
 }
 
 const vector<EntityInfo>& ItemTracker::GetItemsInFOV()
@@ -100,6 +101,27 @@ void ItemTracker::RemoveItemsFOV()
 {
 	if (m_ItemsInFOV.size() > 0)
 		m_ItemsInFOV.clear();
+}
+
+void ItemTracker::RemoveItem(eItemType type, Elite::Vector2 pos)
+{
+	RemoveItemVec(m_AllItems, pos, type);
+
+	switch (type)
+	{
+	case eItemType::PISTOL:
+		RemoveItemVec(m_PistolVec, pos, type);
+		break;
+	case eItemType::MEDKIT:
+		RemoveItemVec(m_MedkitVec, pos, type);
+		break;
+	case eItemType::FOOD:
+		RemoveItemVec(m_FoodVec, pos, type);
+		break;
+	default:
+		RemoveItemVec(m_MiscVec, pos, type);
+		break;
+	}
 }
 
 float ItemTracker::GetClosestDistance(const Elite::Vector2 & pos)
@@ -150,6 +172,27 @@ float ItemTracker::GetClosest(const vector<Item>& vec, const Elite::Vector2 & po
 
 	m_ClosestPos = item.pos;
 	return max;
+}
+
+void ItemTracker::RemoveItemVec(vector<Item>& vec, const Elite::Vector2 & pos, eItemType type)
+{
+	if (vec.size() > 0)
+	{
+		bool found = false;
+		int indextoErase;
+
+		for (size_t i = 0; i < vec.size(); i++)
+		{
+			if (vec.at(i).pos == pos)
+			{
+				found = true;
+				indextoErase = i;
+			}
+		}
+
+		if(found)vec.erase(vec.begin() + indextoErase);
+	}
+	
 }
 
 

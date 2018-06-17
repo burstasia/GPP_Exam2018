@@ -107,6 +107,18 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 				({
 				new BehaviorSequence
 					({
+						new BehaviorConditional(WasInHousePrevFrame),
+						new BehaviorConditional(IsNotInHouse),
+						new BehaviorAction(ClearItemsFOV)
+					}),
+				new BehaviorSequence
+					({
+						new BehaviorConditional(IsNotInHouse),
+						new BehaviorConditional(LowHealth),
+
+					})
+				new BehaviorSequence
+					({
 						new BehaviorConditional(IsCheckpointNotSet),
 						new BehaviorAction(PushCheckpoint),
 						new BehaviorAction(SetTarget),

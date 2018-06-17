@@ -35,6 +35,8 @@ public:
 	const vector<EntityInfo>& GetNewEntities();
 	void RemoveItemsFOV();
 
+	void RemoveItem(eItemType type, Elite::Vector2 pos);
+
 	float GetClosestDistance(const Elite::Vector2& pos);
 private:
 	vector<Item> m_MedkitVec;
@@ -49,6 +51,6 @@ private:
 
 	void AddItemToVec(vector<Item>& vec, eItemType type, const Elite::Vector2& pos);
 	float GetClosest(const vector<Item>& vec, const Elite::Vector2& pos);
-
+	void RemoveItemVec(vector<Item>& vec, const Elite::Vector2& pos, eItemType type);
 };
 
